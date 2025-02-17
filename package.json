@@ -6,6 +6,7 @@
     "@reduxjs/toolkit": "^2.5.1",
     "cors": "^2.8.5",
     "cra-template": "1.2.0",
+    "material-icons": "^1.13.14",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-redux": "^9.2.0",
@@ -13,7 +14,8 @@
     "react-scripts": "5.0.1",
     "redux": "^5.0.1",
     "socket.io-client": "^4.8.1",
-    "styled-components": "^6.1.15"
+    "styled-components": "^6.1.15",
+    "styled-normalize": "^8.1.1"
   },
   "scripts": {
     "start": "react-scripts start",

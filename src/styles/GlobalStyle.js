@@ -16,9 +16,13 @@ export const GlobalStyle = createGlobalStyle`
 
       /* colors */
       --color-black: #232629;
+      --color-lightgray: #bfbfbf;
       --color-white: #ffffff;
       --color-purpleblue: #6663FF;
   }
+
+  
+  /* ------------ 페이지 ------------ */
 
   /* ------------ CSS reset ------------ */
   /* 기본 설정 */

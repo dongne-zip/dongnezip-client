@@ -3,8 +3,6 @@ import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import Index from './pages/mypage/Index';
 import EditProfile from './pages/mypage/EditProfile';
-
-import { Route, Routes } from 'react-router-dom';
 import Header from './components/common/Header';
 import Home from './pages/Index';
 import Purchase from './pages/purchase/Index';

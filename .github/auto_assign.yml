@@ -6,6 +6,7 @@ addAssignees: author
 
 # Reviewer 추가할 사용자 목록
 reviewers:
+  - suyeon-dev
   - yanjinlkham9
   - suvd0377
 

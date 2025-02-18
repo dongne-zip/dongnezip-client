@@ -1,27 +1,34 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useMap } from './MapContext';
 import MiniMap from '../purchase/MiniMap';
 
-const KakaoMap = () => {
+export default function KakaoMap() {
   const { markers, setMarkers } = useMap();
   const [map, setMap] = useState(null);
 
   useEffect(() => {
-    if (!window.kakao || !window.kakao.maps) return;
+    const waitForKakao = () => {
+      if (window.kakao && window.kakao.maps) {
+        initializeMap();
+      } else {
+        setTimeout(waitForKakao, 500);
+      }
+    };
 
-    window.kakao.maps.load(() => {
-      const container = document.getElementById('map');
-      const options = {
-        center: new window.kakao.maps.LatLng(37.5665, 126.978),
-        level: 3,
-      };
-
-      const newMap = new window.kakao.maps.Map(container, options);
-      setMap(newMap);
-
-      loadSavedMarkers(newMap);
-    });
+    waitForKakao();
   }, []);
+
+  const initializeMap = () => {
+    const container = document.getElementById('map');
+    const options = {
+      center: new window.kakao.maps.LatLng(37.5665, 126.978),
+      level: 3,
+    };
+
+    const newMap = new window.kakao.maps.Map(container, options);
+    setMap(newMap);
+    loadSavedMarkers(newMap);
+  };
 
   useEffect(() => {
     if (!map) return;
@@ -56,7 +63,9 @@ const KakaoMap = () => {
         <div style="padding:10px;">
           ${name}
           <br />
-          <button onclick="removeMarker(${lat}, ${lng})">삭제</button>
+          <button onclick="(function(lat, lng) {
+            ${removeMarker.toString()}(lat, lng);
+          })(${lat}, ${lng})">삭제</button>
         </div>
       `,
     });
@@ -68,6 +77,16 @@ const KakaoMap = () => {
     const newMarker = { lat, lng, name, marker, infowindow };
     setMarkers((prevMarkers) => {
       const updatedMarkers = [...prevMarkers, newMarker];
+      saveMarkers(updatedMarkers);
+      return updatedMarkers;
+    });
+  };
+
+  const removeMarker = (lat, lng) => {
+    setMarkers((prevMarkers) => {
+      const updatedMarkers = prevMarkers.filter(
+        (marker) => marker.lat !== lat || marker.lng !== lng,
+      );
       saveMarkers(updatedMarkers);
       return updatedMarkers;
     });
@@ -91,10 +110,8 @@ const KakaoMap = () => {
 
   return (
     <div>
-      <div id="map" style={{ width: '100%', height: '500px' }}></div>
+      <div id="map" style={{ width: '70%', height: '500px' }}></div>
       <MiniMap markers={markers} />
     </div>
   );
-};
-
-export default KakaoMap;
+}

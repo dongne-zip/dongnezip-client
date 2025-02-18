@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const MiniMap = ({ markers = [] }) => {
   // 기본값을 빈 배열로 설정
@@ -27,7 +27,7 @@ const MiniMap = ({ markers = [] }) => {
 
         // 마커 클릭 시 정보 표시
         const infowindow = new window.kakao.maps.InfoWindow({
-          content: `<div style="padding:5px;">${marker.name}</div>`, // 장소명을 정보창에 표시
+          content: `<div style="padding:5px;">${marker.name}</div>`,
         });
 
         window.kakao.maps.event.addListener(kakaoMarker, 'click', () => {
@@ -52,7 +52,7 @@ const MiniMap = ({ markers = [] }) => {
       <div
         id="mini-map"
         style={{
-          width: '100%',
+          width: '50%',
           height: '250px',
           borderRadius: '10px',
           cursor: 'pointer',
@@ -73,12 +73,6 @@ const MiniMap = ({ markers = [] }) => {
           <h3>📍 선택한 마커 정보</h3>
           <p>
             <strong>장소명:</strong> {selectedMarker.name}
-          </p>
-          <p>
-            <strong>위도:</strong> {selectedMarker.lat.toFixed(5)}
-          </p>
-          <p>
-            <strong>경도:</strong> {selectedMarker.lng.toFixed(5)}
           </p>
         </div>
       )}

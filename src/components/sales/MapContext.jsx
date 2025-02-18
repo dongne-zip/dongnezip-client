@@ -2,7 +2,7 @@ import { createContext, useContext, useState } from 'react';
 
 const MapContext = createContext();
 
-export const MapProvider = ({ children }) => {
+export const MapContextProvider = ({ children }) => {
   const [markers, setMarkers] = useState([]);
 
   return (

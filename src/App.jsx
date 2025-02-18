@@ -9,25 +9,32 @@ import Purchase from './pages/purchase/Index';
 import Sales from './pages/sales/Index';
 import NotFound from './pages/NotFound';
 import { GlobalStyle } from './styles/GlobalStyle';
+import SaleRegistration from './pages/sales/SaleRegistration';
+import { Provider } from 'react-redux';
+import store from './store/index';
 
 function App() {
   return (
     <>
-      <GlobalStyle />
-      <Header />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/purchase" element={<Purchase />} />
-        <Route path="/sales" element={<Sales />} />
+      <Provider store={store}>
+        <GlobalStyle />
+        <Header />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/purchase" element={<Purchase />} />
+          {/* 판매페이지 관련 */}
+          <Route path="/sales" element={<Sales />} />
+          <Route path="/additem" element={<SaleRegistration />}></Route>
 
-        {/* 마이페이지 관련 */}
-        <Route path="/login" element={<Login />}></Route>
-        <Route path="/join" element={<Register />}></Route>
-        <Route path="/myPage" element={<Index />}></Route>
-        <Route path="/change" element={<EditProfile />}></Route>
+          {/* 마이페이지 관련 */}
+          <Route path="/login" element={<Login />}></Route>
+          <Route path="/join" element={<Register />}></Route>
+          <Route path="/myPage" element={<Index />}></Route>
+          <Route path="/change" element={<EditProfile />}></Route>
 
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Provider>
     </>
   );
 }

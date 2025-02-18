@@ -6,7 +6,7 @@ import chatReducer from './reducers/chatReducer';
 const rootReducer = combineReducers({
   auth: authReducer,
   product: productReducer,
-  chats: chatReducer,
+  chat: chatReducer,
   // 전역 관리 state가 추가되면 여기에 추가
 });
 

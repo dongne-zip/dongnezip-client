@@ -17,7 +17,7 @@ export default function ProductCard({ product }) {
           </S.IconMedium>
         </ItemTitle>
         <ItemPrice>{product.price.toLocaleString()}원</ItemPrice>
-        <ItemPurchasePlace>{product.mapId}</ItemPurchasePlace>
+        <ItemPurchasePlace>{product.regionId}</ItemPurchasePlace>
       </ItemDetailWrapper>
     </ItemContainer>
   );

@@ -47,8 +47,8 @@ export const productList = Array.from({ length: 30 }, (_, index) => ({
   id: index + 1,
   userId: 100 + index + 1,
   categoryId: (index % 8) + 1,
-  regionId: 10 + (index % 15) + 1,
-  mapId: seoulDistricts[index % seoulDistricts.length],
+  regionId: seoulDistricts[index % seoulDistricts.length], // 위치 필터 기준 (서울 00구)
+  mapId: `37.5${index % 10}1234, 127.0${index % 10}5678`, // 지도에서 사용할 위치 (위도, 경도 값 예시)
   title: [
     '아이폰 13 프로',
     '갤럭시 S22 울트라',
@@ -81,15 +81,10 @@ export const productList = Array.from({ length: 30 }, (_, index) => ({
     '명품 가방',
     '자동차 블랙박스',
   ][index % 30],
-  price: [
-    1000000, 1200000, 2500000, 700000, 350000, 300000, 200000, 550000, 1300000,
-    55000, 250000, 600000, 750000, 450000, 130000, 400000, 850000, 1400000,
-    1250000, 800000, 220000, 1500000, 1300000, 280000, 500000, 3500000, 4800000,
-    290000, 2700000, 180000,
-  ][index % 30],
+  price: Math.floor(Math.random() * 2000000) + 50000,
   status: index % 2 === 0 ? '거래 가능' : '거래 완료',
   detail: `상품 ${index + 1}의 상세 설명입니다.`,
   itemStatus: ['새상품', '최상', '상', '중', '하'][index % 5],
   img: `${s3}/images/dummy/product-img.png`,
-  likes: Math.floor(Math.random() * 100), // 더미 데이터에서는 랜덤한 찜 개수 추가
+  likes: Math.floor(Math.random() * 100), // 찜 개수를 랜덤 생성 (0~99)
 }));

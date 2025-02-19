@@ -1,7 +1,10 @@
-import { combineReducers } from 'redux';
+import { combineReducers } from '@reduxjs/toolkit';
+import userReducer from './modules/userReducer';
+import authReducer from './modules/authReducer';
 
 const rootReducer = combineReducers({
-  // 전역 관리 state가 추가되면 여기에 추가
+  user: userReducer,
+  authReducer: authReducer,
 });
 
 export default rootReducer;

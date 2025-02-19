@@ -1,36 +1,47 @@
-import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { setEmail, setPassword } from '../../store/modules/userReducer';
 import { Link, useNavigate } from 'react-router-dom';
+import { login } from '../../store/modules/authReducer';
 
 export default function Login() {
-  const [id, setId] = useState('');
-  const [password, setPassword] = useState('');
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  // 상태를 정확하게 가져옵니다
+  const email = useSelector((state) => state.user.email);
+  const password = useSelector((state) => state.user.password);
+  const users = useSelector((state) => state.user.users); // users 데이터 가져오기
+
   const handleLogin = (e) => {
     e.preventDefault();
-    if (!id || !password) {
-      alert('아이디 또는 비밀번호가 필수값입니다.');
+    if (!email || !password) {
+      alert('이메일 또는 비밀번호가 필수값입니다.');
       return;
     }
-    // 간단한 검증 예시 (실제 서버와 연동 시 서버로 요청 보내야 함)
-    if (id === 'sesac' && password === '1234') {
+
+    const user = users.find(
+      (user) => user.email === email && user.password === password,
+    );
+
+    if (user) {
+      dispatch(login(user));
       alert('로그인 성공!');
-      navigate('/mypage', { state: { userId: id } });
+      navigate('/myPage');
     } else {
-      alert('아이디 또는 비밀번호가 틀렸습니다.');
+      alert('이메일 또는 비밀번호가 틀렸습니다.');
     }
   };
 
   return (
     <div className="loginContainer">
       <h3>로그인</h3>
-      <span>임시아이디, 비번: sesac, 1234</span>
       <form className="loginForm" onSubmit={handleLogin}>
-        <label htmlFor="userId"> 아이디: </label>
+        <label htmlFor="email"> 이메일: </label>
         <input
-          type="text"
-          id="userId"
-          value={id}
-          onChange={(e) => setId(e.target.value)}
+          type="email"
+          id="email"
+          value={email}
+          onChange={(e) => dispatch(setEmail(e.target.value))} // 이메일 입력 변경 시 상태 업데이트
         />
         <br />
         <label htmlFor="userPw">비밀번호:</label>
@@ -38,10 +49,8 @@ export default function Login() {
           type="password"
           id="userPw"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) => dispatch(setPassword(e.target.value))} // 비밀번호 입력 변경 시 상태 업데이트
         />
-        <br />
-        {/* <Link to="/">비밀번호 찾기</Link> */}
         <br />
         <button type="submit">로그인</button>
         <br />

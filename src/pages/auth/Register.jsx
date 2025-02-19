@@ -1,23 +1,21 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import PhoneNumber from '../../components/auth/PhoneNumber';
 
 export default function Register() {
-  const [id, setId] = useState('');
+  const [email, setEmail] = useState('');
   const [isValid, setIsValid] = useState(null);
   const [nickname, setNickname] = useState('');
   const [isValidNickname, setIsValidNickname] = useState(null);
   const [password, setPassword] = useState('');
   const [passwordCheck, setPasswordCheck] = useState('');
   const [isValidPassword, setIsValidPassword] = useState(null);
-  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
   const [isFormValid, setIsFormValid] = useState(false);
 
   useEffect(() => {
-    // ID Validation
-    const idRegex = /^[a-z0-9]{4,12}$/;
-    setIsValid(id !== '' ? idRegex.test(id) : null);
-  }, [id]);
+    //email Validation
+    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    setIsValid(email !== '' ? emailPattern.test(email) : null);
+  }, [email]);
 
   useEffect(() => {
     // Nickname Validation (Korean, English, and numbers, 4-20 characters)
@@ -34,24 +32,22 @@ export default function Register() {
   useEffect(() => {
     // Form validity
     const isValidForm =
-      id &&
+      email &&
       isValid &&
       nickname &&
       isValidNickname &&
       password &&
       password === passwordCheck &&
       isValidPassword &&
-      isPhoneVerified;
-    setIsFormValid(isValidForm);
+      setIsFormValid(isValidForm);
   }, [
-    id,
+    email,
     isValid,
     nickname,
     isValidNickname,
     password,
     passwordCheck,
     isValidPassword,
-    isPhoneVerified,
   ]);
 
   const handleSubmit = (e) => {
@@ -68,21 +64,22 @@ export default function Register() {
       <h3>회원가입</h3>
       <form className="registerForm" onSubmit={handleSubmit}>
         {/* ID Input */}
-        <label htmlFor="userId">아이디: </label>
+        <label htmlFor="email">이메일: </label>
         <input
-          type="text"
-          id="userId"
-          value={id}
-          onChange={(e) => setId(e.target.value)}
+          type="email"
+          id="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
         />
         <p>
           {isValid === null
             ? ''
             : isValid
               ? '중복확인을 해주세요'
-              : '영문 소 문자 숫자만 입력, 4~12자리'}
+              : '[abc@def.com] 이메일 형태로 입력해주세요'}
         </p>
         <button type="button">중복확인</button>
+        <button>인증번호 받기</button>
         <br />
         {/* name Input */}
         <label htmlFor="userName">이름: </label>
@@ -123,7 +120,7 @@ export default function Register() {
           onChange={(e) => setPasswordCheck(e.target.value)}
         />
         {password !== passwordCheck && passwordCheck.length > 0 && (
-          <p style={{ color: 'red' }}>비밀번호가 일치하지 않습니다.</p>
+          <p>비밀번호가 일치하지 않습니다</p>
         )}
         <p>
           {isValidPassword === null
@@ -132,11 +129,6 @@ export default function Register() {
               ? ''
               : '영문, 숫자, 특수문자(@!#$), 6~20자리'}
         </p>
-        <br />
-
-        {/* Phone Number and Verification */}
-        <PhoneNumber setIsPhoneVerified={setIsPhoneVerified} />
-
         <button type="submit" disabled={!isFormValid}>
           회원가입
         </button>

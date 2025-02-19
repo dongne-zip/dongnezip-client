@@ -1,7 +1,9 @@
+import * as S from '../styles/mixins';
+
 export default function Index() {
   return (
-    <div>
+    <S.MainLayout>
       <h1>여기는 메인 페이지</h1>
-    </div>
+    </S.MainLayout>
   );
 }

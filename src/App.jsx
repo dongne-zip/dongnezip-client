@@ -1,14 +1,15 @@
 import { Route, Routes } from 'react-router-dom';
-import Header from './components/common/Header';
-import Home from './pages/Index';
-import Purchase from './pages/purchase/Index';
-import Sales from './pages/sales/Index';
-import NotFound from './pages/NotFound';
-import { GlobalStyle } from './styles/GlobalStyle';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import Index from './pages/mypage/Index';
 import EditProfile from './pages/mypage/EditProfile';
+import Header from './components/common/Header';
+import Home from './pages/Index';
+import Purchase from './pages/purchase/Index';
+import ProductDetail from './pages/purchase/ProductDetail';
+import Sales from './pages/sales/Index';
+import NotFound from './pages/NotFound';
+import { GlobalStyle } from './styles/GlobalStyle';
 
 function App() {
   return (
@@ -17,7 +18,15 @@ function App() {
       <Header />
       <Routes>
         <Route path="/" element={<Home />} />
+
+        {/* 구매 */}
         <Route path="/purchase" element={<Purchase />} />
+        <Route
+          path="/purchase/product-detail/:id"
+          element={<ProductDetail />}
+        />
+
+        {/* 판매 */}
         <Route path="/sales" element={<Sales />} />
 
         {/* 마이페이지 관련 */}

@@ -1,20 +1,17 @@
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
+import userList from '../../../data/dummyUser';
 
 export default function ProfilePart() {
-  const isLogin = useSelector((state) => state.authReducer.isLogin);
-  const user = useSelector((state) => state.authReducer.user);
-  console.log('login', isLogin);
+  const nickname = useSelector((state) => state.authReducer.nickname);
 
-  console.log('user', user);
-  if (!isLogin) {
-    return <p>로그인을 해주세요</p>;
-  }
+  console.log('user', nickname);
+
   return (
     <div>
-      <img src={user.profilePath} alt="프로필 사진" />
-      <p>{user.nickname}님, 반갑습니다</p>
-      <Link to="/change">
+      <img src={userList.profilePath} alt="프로필 사진" />
+      <p>{nickname}님, 반갑습니다</p>
+      <Link to="/changeInfo">
         <button>회원정보 수정</button>
       </Link>
     </div>

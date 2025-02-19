@@ -1,7 +1,8 @@
 const s3 = process.env.REACT_APP_S3;
 
 // category_id
-/* const categoryId = {
+export const categoryId = {
+  0: '전체',
   1: '의류/미용',
   2: '생활/주방',
   3: '디지털',
@@ -10,26 +11,44 @@ const s3 = process.env.REACT_APP_S3;
   6: '식품',
   7: '삽니다',
   8: '나눔',
-}; */
+};
+
+// 서울 구 단위 지역 리스트
+export const seoulDistricts = [
+  '강남구',
+  '강동구',
+  '강북구',
+  '강서구',
+  '관악구',
+  '광진구',
+  '구로구',
+  '금천구',
+  '노원구',
+  '도봉구',
+  '동대문구',
+  '동작구',
+  '마포구',
+  '서대문구',
+  '서초구',
+  '성동구',
+  '성북구',
+  '송파구',
+  '양천구',
+  '영등포구',
+  '용산구',
+  '은평구',
+  '종로구',
+  '중구',
+  '중랑구',
+];
 
 // 상품 dummy
 export const productList = Array.from({ length: 30 }, (_, index) => ({
   id: index + 1,
   userId: 100 + index + 1,
-  categoryId: (index % 8) + 1, // 1~8 카테고리 순환
-  regionId: 10 + (index % 15) + 1, // 11~25 지역 순환
-  mapId: [
-    '서울 강남구',
-    '서울 마포구',
-    '서울 서초구',
-    '부산 해운대구',
-    '대구 중구',
-    '광주 서구',
-    '대전 유성구',
-    '울산 남구',
-    '인천 연수구',
-    '제주 서귀포시',
-  ][index % 10],
+  categoryId: (index % 8) + 1,
+  regionId: 10 + (index % 15) + 1,
+  mapId: seoulDistricts[index % seoulDistricts.length],
   title: [
     '아이폰 13 프로',
     '갤럭시 S22 울트라',
@@ -68,9 +87,9 @@ export const productList = Array.from({ length: 30 }, (_, index) => ({
     1250000, 800000, 220000, 1500000, 1300000, 280000, 500000, 3500000, 4800000,
     290000, 2700000, 180000,
   ][index % 30],
-  status:
-    index % 3 === 0 ? '판매 중' : index % 3 === 1 ? '판매 완료' : '구매 희망',
-  detail: `상품 ${index + 1}의 상세 설명입니다. 사용감이 적고 상태가 좋습니다.`,
-  itemStatus: ['최상', 'A급', 'B급'][index % 3], // 아이템 상태 순환
+  status: index % 2 === 0 ? '거래 가능' : '거래 완료',
+  detail: `상품 ${index + 1}의 상세 설명입니다.`,
+  itemStatus: ['새상품', '최상', '상', '중', '하'][index % 5],
   img: `${s3}/images/dummy/product-img.png`,
+  likes: Math.floor(Math.random() * 100), // 더미 데이터에서는 랜덤한 찜 개수 추가
 }));

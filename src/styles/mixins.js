@@ -22,4 +22,8 @@ export const IconMedium = styled.div`
   width: 24px;
 `;
 
-// 버튼 (L)44px - 주로 모바일 (M) (S)
+// 버튼 (L)44px - 주로 모바일 (M) (S)24
+export const BtnSmall = styled.button`
+  height: 24px;
+  width: 24px;
+`;

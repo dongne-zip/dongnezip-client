@@ -9,9 +9,9 @@ import Purchase from './pages/purchase/Index';
 import Sales from './pages/sales/Index';
 import NotFound from './pages/NotFound';
 import { GlobalStyle } from './styles/GlobalStyle';
-import SaleRegistration from './pages/sales/SaleRegistration';
 import { Provider } from 'react-redux';
 import store from './store/index';
+import SaleRegister from './pages/sales/SaleRegister';
 
 function App() {
   return (
@@ -24,7 +24,7 @@ function App() {
           <Route path="/purchase" element={<Purchase />} />
           {/* 판매페이지 관련 */}
           <Route path="/sales" element={<Sales />} />
-          <Route path="/additem" element={<SaleRegistration />} />
+          <Route path="/additem" element={<SaleRegister />} />
 
           {/* 마이페이지 관련 */}
           <Route path="/login" element={<Login />}></Route>

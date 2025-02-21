@@ -23,8 +23,8 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/purchase" element={<Purchase />} />
           {/* 판매페이지 관련 */}
-          <Route path="/sales" element={<Sales />} />
-          <Route path="/additem" element={<SaleRegister />} />
+          <Route path="/sales" element={<SaleRegister />} />
+          <Route path="/additem" element={<Sales />} />
 
           {/* 마이페이지 관련 */}
           <Route path="/login" element={<Login />}></Route>

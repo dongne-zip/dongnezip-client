@@ -10,6 +10,7 @@ import ProductDetail from './pages/purchase/ProductDetail';
 import Sales from './pages/sales/Index';
 import NotFound from './pages/NotFound';
 import { GlobalStyle } from './styles/GlobalStyle';
+import FindPw from './pages/auth/FindPw';
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
         <Route path="/join" element={<Register />}></Route>
         <Route path="/myPage" element={<Index />}></Route>
         <Route path="/changeInfo" element={<EditProfile />}></Route>
+        <Route path="/FindPw" element={<FindPw />}></Route>
 
         <Route path="*" element={<NotFound />} />
       </Routes>

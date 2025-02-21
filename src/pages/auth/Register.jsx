@@ -66,12 +66,15 @@ export default function Register() {
 
     if (isFormValid) {
       try {
-        const response = await axios.post('/join', {
-          email: email,
-          nickname: nickname,
-          password: password,
-          name: document.getElementById('userName').value,
-        });
+        const response = await axios.post(
+          'http://localhost:8080/api-server/user/join',
+          {
+            email: email,
+            nickname: nickname,
+            password: password,
+            name: document.getElementById('userName').value,
+          },
+        );
 
         if (response.status === 200) {
           alert('회원가입이 완료되었습니다!');
@@ -87,9 +90,15 @@ export default function Register() {
   // 이메일 중복 확인
   const handleEmailCheck = async () => {
     try {
-      const response = await axios.post('/checkId', { email: email });
+      const response = await axios.post(
+        'http://localhost:8080/api-server/user/checkId',
+        {
+          email: email,
+        },
+      );
+      console.log('response', response);
       if (response.status === 200) {
-        if (response.data.isAvailable) {
+        if (response.data.message) {
           setIsEmailAvailable(true);
           alert('사용 가능한 이메일입니다.');
         } else {
@@ -105,11 +114,16 @@ export default function Register() {
 
   const handleEmailVerification = async () => {
     try {
-      const response = await axios.post('/sendCode', {
-        email: email,
-      });
+      const response = await axios.post(
+        'http://localhost:8080/api-server/user/sendCode',
+        {
+          email: email,
+        },
+      );
+      console.log('send code response: ', response);
       if (response.status === 200) {
         alert('인증번호가 이메일로 전송되었습니다!');
+        localStorage.setItem('emailAuthToken', response.data.token);
         setIsCodeReceived(true);
       }
     } catch (error) {
@@ -119,12 +133,20 @@ export default function Register() {
   };
 
   const handleCodeVerification = async () => {
+    const token = localStorage.getItem('emailAuthToken');
     try {
-      const response = await axios.post('/verifyCode', {
-        email: email,
-        code: verificationCode,
-      });
-      if (response.status === 200 && response.data.isValid) {
+      const response = await axios.post(
+        'http://localhost:8080/api-server/user/verifyCode',
+        {
+          email: email,
+          code: verificationCode,
+          token: token,
+        },
+      );
+      console.log('verficationCODE:', response);
+      console.log('verficationCODE:', response.code);
+      console.log('verficationCODE:', response.token);
+      if (response.status === 200) {
         setIsCodeValid(true);
         setIsEmailVerified(true);
         alert('인증번호가 확인되었습니다.');
@@ -140,9 +162,12 @@ export default function Register() {
 
   const handleNicknameCheck = async () => {
     try {
-      const response = await axios.post('/checkNick', {
-        nickname: nickname,
-      });
+      const response = await axios.post(
+        'http://localhost:8080/api-server/user/checkNick',
+        {
+          nickname: nickname,
+        },
+      );
       if (response.status === 200) {
         alert('사용 가능한 닉네임입니다.');
       }
@@ -163,22 +188,23 @@ export default function Register() {
   return (
     <ExtendedMainLayout>
       <RegisterContainer>
-        <h3>회원가입</h3>
-        <form className="registerForm" onSubmit={handleSubmit}>
-          <label htmlFor="email">이메일: </label>
-          <input
+        <H3>회원가입</H3>
+        <RegisterForm className="registerForm" onSubmit={handleSubmit}>
+          <Label htmlFor="email">이메일: </Label>
+          <Input
             type="email"
             id="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
-          <p>
+
+          <WarningText>
             {isValid === null
               ? ''
               : isValid
                 ? ''
                 : '[abc@def.com] 이메일 형태로 입력해주세요'}
-          </p>
+          </WarningText>
           <button type="button" onClick={handleEmailCheck} disabled={!isValid}>
             중복 확인
           </button>
@@ -193,8 +219,8 @@ export default function Register() {
 
           {isCodeReceived && (
             <>
-              <label htmlFor="verificationCode">인증번호:</label>
-              <input
+              <Label htmlFor="verificationCode">인증번호:</Label>
+              <Input
                 type="text"
                 id="verificationCode"
                 value={verificationCode}
@@ -209,61 +235,65 @@ export default function Register() {
           )}
           <br />
 
-          <label htmlFor="userName">이름: </label>
-          <input type="text" id="userName" required />
+          <Label htmlFor="userName">이름: </Label>
+          <Input type="text" id="userName" required />
           <br />
 
-          <label htmlFor="nickname">닉네임: </label>
-          <input
+          <Label htmlFor="nickname">닉네임: </Label>
+          <Input
             type="text"
             id="nickname"
             value={nickname}
             onChange={(e) => setNickname(e.target.value)}
           />
-          <p>
+          <WarningText>
             {isValidNickname === null
               ? ''
               : isValidNickname
                 ? ''
                 : '한글, 영문, 숫자만 입력 가능, 4~20자리'}
-          </p>
+          </WarningText>
           <button type="button" onClick={handleNicknameCheck}>
             중복확인
           </button>
           <br />
 
-          <label htmlFor="password">비밀번호:</label>
-          <input
+          <Label htmlFor="password">비밀번호:</Label>
+          <Input
             type="password"
             id="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
           <br />
-          <label htmlFor="passwordCheck">비밀번호 확인:</label>
-          <input
+          <Label htmlFor="passwordCheck">비밀번호 확인:</Label>
+          <Input
             type="password"
             id="passwordCheck"
             value={passwordCheck}
             onChange={(e) => setPasswordCheck(e.target.value)}
           />
           {password !== passwordCheck && passwordCheck.length > 0 && (
-            <p>비밀번호가 일치하지 않습니다</p>
+            <WarningText>비밀번호가 일치하지 않습니다</WarningText>
           )}
-          <p>
+          <WarningText>
             {isValidPassword === null
               ? ''
               : isValidPassword
                 ? ''
                 : '영문, 숫자, 특수문자(@!#$), 6~20자리'}
-          </p>
-          <button type="submit" disabled={!isFormValid}>
+          </WarningText>
+          <Button type="submit" disabled={!isFormValid}>
             회원가입
-          </button>
+          </Button>
           <br />
-          <span>이미 계정이 있나요?</span>
-          <Link to="/login">로그인</Link>
-        </form>
+          <Notice>
+            이미 계정이 있나요?
+            <Link to="/login" className="loginLink">
+              로그인
+            </Link>
+          </Notice>
+        </RegisterForm>
       </RegisterContainer>
     </ExtendedMainLayout>
   );
@@ -277,9 +307,62 @@ const ExtendedMainLayout = styled(S.MainLayout)`
 
 const RegisterContainer = styled.div`
   width: 100%;
-  max-width: 400px;
+  max-width: 500px;
+  font-size: 14px;
+  line-height: 1.5;
   padding: 2rem;
   background-color: white;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+`;
+const H3 = styled.h3`
+  text-align: center;
+`;
+const RegisterForm = styled.form`
+  margin: 0 auto;
+  padding: 16px;
+`;
+const Label = styled.label`
+  display: block;
+  font-weight: 600;
+  margin-bottom: 4px;
+`;
+const Input = styled.input`
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  &:focus {
+    border-color: #5a67d8;
+    outline: none;
+  }
+`;
+const Button = styled.button`
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 4px;
+  background-color: #5451ff;
+  color: white;
+  cursor: pointer;
+  &:hover {
+    background-color: #7e7dbe;
+  }
+`;
+const WarningText = styled.p`
+  color: #e53e3e;
+  font-size: 12px;
+  margin-top: 4px;
+`;
+
+const Notice = styled.div`
+  text-align: center;
+  &.loginLink {
+    text-decoration: underline;
+    color: #007bff;
+    transition: color 0.3s ease;
+  }
+
+  .loginLink:hover {
+    color: #0b0b0b;
+  }
 `;

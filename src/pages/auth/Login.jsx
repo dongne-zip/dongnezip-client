@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import * as S from '../../styles/mixins';
 import styled from 'styled-components';
-import userList from '../../data/dummyUser';
+import axios from 'axios';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -10,24 +10,34 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     if (!email || !password) {
       alert('이메일 또는 비밀번호가 필수값입니다.');
       return;
     }
 
-    const user = userList.find(
-      (user) => user.email === email && user.password === password,
-    );
+    try {
+      // 로그인 요청
+      const response = await axios.post(
+        '/login/local',
+        { email, password },
+        { withCredentials: true },
+      );
 
-    //axios.post
-    if (user) {
+      // 로그인 성공시 토큰 저장 및 페이지 이동
+      axios.defaults.headers.common['Authorization'] =
+        `Bearer ${response.data.access_token}`;
       alert('로그인 성공!');
       navigate('/myPage');
-    } else {
+    } catch (error) {
+      console.error(error.response.data);
       alert('이메일 또는 비밀번호가 틀렸습니다.');
     }
+  };
+
+  const handleKakaoLogin = () => {
+    navigate('/login/kakao');
   };
 
   return (
@@ -53,7 +63,10 @@ export default function Login() {
           <br />
           <button type="submit">로그인</button>
           <br />
-          <button>카카로 로그인하기</button>
+          {/* 카카오 로그인 버튼 */}
+          <button type="button" onClick={handleKakaoLogin}>
+            카카오로 로그인하기
+          </button>
           <br />
           <span>계정이 없나요?</span>
           <Link to="/join">회원가입</Link>

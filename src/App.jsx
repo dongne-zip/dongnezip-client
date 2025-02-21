@@ -32,6 +32,7 @@ function App() {
           <Route path="/myPage" element={<Index />}></Route>
           <Route path="/change" element={<EditProfile />}></Route>
           <Route path="/findPw" element={<FindPw />}></Route>
+
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Provider>

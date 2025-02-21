@@ -1,11 +1,24 @@
 import { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
+import axios from 'axios';
 
 const MiniMap = () => {
-  const markers = useSelector((state) => state.map.markers);
+  const [markers, setMarkers] = useState([]);
   const [selectedInfo, setSelectedInfo] = useState(null);
 
   useEffect(() => {
+    const fetchMarkers = async () => {
+      try {
+        const response = await axios.get('/api/map/get-markers');
+        if (response.data.success) {
+          setMarkers(response.data.markers);
+        }
+      } catch (error) {
+        console.error('마커 데이터를 가져오는 중 오류 발생:', error);
+      }
+    };
+
+    fetchMarkers();
+
     const script = document.createElement('script');
     script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=7cf2cd1efa95313a520efbf5c739fb2e&libraries=services`;
     script.async = true;

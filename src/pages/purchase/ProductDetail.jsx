@@ -2,6 +2,8 @@ import * as S from '../../styles/mixins';
 import { productList } from '../../data/dummyProduct';
 import { useParams } from 'react-router-dom';
 import { styled } from 'styled-components';
+import MiniMap from '../../components/purchase/MiniMap';
+
 // import { io } from 'socket.io-client';
 // import { useEffect, useState } from 'react';
 // import axios from 'axios';
@@ -62,6 +64,7 @@ export default function ProductDetail() {
       <button>채팅하기</button>
       <button>찜하기</button>
       <div>거래상태{}</div>
+      <MiniMap />
     </S.MainLayout>
   );
 }

@@ -10,8 +10,8 @@ import ProductDetail from './pages/purchase/ProductDetail';
 import Sales from './pages/sales/Index';
 import NotFound from './pages/NotFound';
 import { GlobalStyle } from './styles/GlobalStyle';
+import SaleRegistration from './pages/sales/SaleRegister';
 import FindPw from './pages/auth/FindPw';
-
 function App() {
   return (
     <>
@@ -28,7 +28,8 @@ function App() {
         />
 
         {/* 판매 */}
-        <Route path="/sales" element={<Sales />} />
+        <Route path="/item/sales" element={<Sales />} />
+        <Route path="/item/additem" element={<SaleRegistration />} />
 
         {/* 마이페이지 관련 */}
         <Route path="/login" element={<Login />}></Route>

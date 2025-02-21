@@ -12,7 +12,7 @@ import { GlobalStyle } from './styles/GlobalStyle';
 import { Provider } from 'react-redux';
 import store from './store/index';
 import SaleRegister from './pages/sales/SaleRegister';
-
+import FindPw from './pages/auth/FindPw';
 function App() {
   return (
     <>
@@ -31,7 +31,7 @@ function App() {
           <Route path="/join" element={<Register />}></Route>
           <Route path="/myPage" element={<Index />}></Route>
           <Route path="/change" element={<EditProfile />}></Route>
-
+          <Route path="/findPw" element={<FindPw />}></Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Provider>

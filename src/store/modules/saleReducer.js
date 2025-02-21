@@ -1,12 +1,12 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-  category: '',
+  categoryId: '',
   title: '',
-  condition: '',
+  itemStatus: '',
   price: '',
-  description: '',
-  image: null,
+  detail: '',
+  imageUrl: '',
   errors: {},
 };
 
@@ -14,29 +14,29 @@ const saleSlice = createSlice({
   name: 'sale',
   initialState,
   reducers: {
-    setCategory: (state, action) => {
-      state.category = action.payload;
+    setCategoryId: (state, action) => {
+      state.categoryId = action.payload;
     },
     setTitle: (state, action) => {
       state.title = action.payload;
     },
-    setCondition: (state, action) => {
-      state.condition = action.payload;
+    setItemStatus: (state, action) => {
+      state.itemStatus = action.payload;
     },
     setPrice: (state, action) => {
       state.price = action.payload;
     },
-    setDescription: (state, action) => {
-      state.description = action.payload;
+    setDetail: (state, action) => {
+      state.detail = action.payload;
     },
-    setImage: (state, action) => {
-      state.image = action.payload;
+    setImageUrl: (state, action) => {
+      state.imageUrl = action.payload;
     },
     validateForm: (state) => {
       const newErrors = {};
       if (!state.title) newErrors.title = '입력해주세요';
       if (!state.price) newErrors.price = '입력해주세요';
-      if (!state.description) newErrors.description = '입력해주세요';
+      if (!state.detail) newErrors.detail = '입력해주세요';
       state.errors = newErrors;
     },
     resetForm: (state) => {
@@ -46,12 +46,12 @@ const saleSlice = createSlice({
 });
 
 export const {
-  setCategory,
+  setCategoryId,
   setTitle,
-  setCondition,
+  setItemStatus,
   setPrice,
-  setDescription,
-  setImage,
+  setDetail,
+  setImageUrl,
   validateForm,
   resetForm,
 } = saleSlice.actions;

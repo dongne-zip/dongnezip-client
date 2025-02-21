@@ -1,4 +1,5 @@
 // import * as S from '../../styles/mixins';
+// import { SEOUL_DISTRICTS, CATEGORY_LIST } from '../../data/constant';
 import { categoryId, seoulDistricts } from '../../data/dummyProduct';
 
 export default function ContainerFilter({
@@ -28,40 +29,29 @@ export default function ContainerFilter({
       <section>
         <h4>위치</h4>
         <div>서울특별시</div>
-        <label>
-          <input
-            type="radio"
-            name="location"
-            value=""
-            checked={location === ''}
-            onChange={() => setLocation('')}
-          />
-          서울 전체
-        </label>
-
-        {seoulDistricts.map((district) => (
-          <label key={district}>
+        {seoulDistricts.map(({ id, name }) => (
+          <label key={id}>
             <input
               type="radio"
               name="location"
-              value={district}
-              checked={location === district}
-              onChange={(e) => setLocation(e.target.value)}
+              value={id}
+              checked={location === Number(id)}
+              onChange={(e) => setLocation(Number(e.target.value))}
             />
-            {district}
+            {name}
           </label>
         ))}
       </section>
 
       <section>
         <h4>카테고리</h4>
-        {Object.entries(categoryId).map(([id, name]) => (
+        {categoryId.map(({ id, name }) => (
           <label key={id}>
             <input
               type="radio"
               name="category"
               value={id}
-              checked={category === Number(id)}
+              checked={category === id}
               onChange={(e) => setCategory(Number(e.target.value))}
             />
             {name}

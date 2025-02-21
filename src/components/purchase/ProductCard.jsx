@@ -1,30 +1,93 @@
 import { styled } from 'styled-components';
 import * as S from '../../styles/mixins';
-import { seoulDistricts } from '../../data/dummyProduct';
+import { useEffect, useState } from 'react';
+import axios from 'axios';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faHeart as regularHeart } from '@fortawesome/free-regular-svg-icons'; // 빈 하트
+import { faHeart as solidHeart } from '@fortawesome/free-solid-svg-icons'; // 채워진 하트
 
-const s3 = process.env.REACT_APP_S3;
+// import { seoulDistricts } from '../../data/dummyProduct';
+
+// const s3 = process.env.REACT_APP_S3;
+const API = process.env.REACT_APP_API_SERVER;
 
 export default function ProductCard({ product }) {
-  // (TODO) API 명세서 수정되면 수정
-  const regionName =
-    seoulDistricts.find((region) => region.id === product.regionId)?.name ||
-    '알 수 없음';
+  const [liked, setLiked] = useState(product.isLiked || false);
+  const [likeCount, setLikeCount] = useState(product.likes || 0);
+
+  // 지역명
+  const regionName = product.region
+    ? `${product.region.province} ${product.region.district}`
+    : '알 수 없음';
+
+  useEffect(() => {
+    console.log('Liked 상태 변경됨:', liked);
+  }, [liked]);
+
+  // 좋아요
+  const handleLikeClick = async (e) => {
+    e.preventDefault(); // 부모 요소 링크 이동 방지
+
+    console.log('API 서버 주소:', API);
+    console.log('상품 id:', product.id);
+    console.log('좋아요 요청 데이터:', { itemId: product.id });
+
+    try {
+      const res = await axios.post(`${API}/item/favorites`, {
+        itemId: product.id,
+      });
+
+      console.log('서버 응답 데이터:', res.data);
+      console.log('서버 응답 상태코드:', res.status);
+      console.log('res.message:', res.message);
+
+      if (res.data.success) {
+        alert(res.data.message);
+
+        setLiked((prev) => {
+          const newLikedState = !prev;
+          console.log('좋아요 상태 변경됨:', newLikedState);
+          setLikeCount((prevCount) =>
+            newLikedState ? prevCount + 1 : prevCount - 1,
+          );
+          return newLikedState;
+        });
+      }
+    } catch (error) {
+      // (todo) 상태 코드 기반으로 수정하기
+      console.error('좋아요 추가 중 오류 발생:', error);
+
+      if (error.response) {
+        console.error('서버 응답 코드:', error.response.status);
+        console.error('서버 응답 데이터:', error.response.data);
+        console.error('서버 응답 상태 텍스트:', error.response.statusText);
+      } else if (error.request) {
+        console.error('요청은 전송되었지만 응답을 받지 못함:', error.request);
+      } else {
+        console.error('요청 설정 중 오류 발생:', error.message);
+      }
+    }
+  };
 
   return (
     <ItemContainer>
       <ItemImgWrapper>
-        <img src={product.img} alt={product.title} />
+        <img src={product.imgUrl} alt={product.title} />
       </ItemImgWrapper>
-      <ItemDetailWrapper>
+      <ItemInfoWrapper>
         <ItemTitle>
           <div>{product.title}</div>
-          <S.IconMedium>
-            <img src={`${s3}/icons/icon-heart.png`} alt="좋아요 아이콘" />
-          </S.IconMedium>
+          <LikeButton onClick={handleLikeClick}>
+            <FontAwesomeIcon
+              icon={liked ? solidHeart : regularHeart}
+              style={{ color: liked ? 'red' : 'black' }}
+            />
+          </LikeButton>
+          <div>{likeCount}</div>
         </ItemTitle>
         <ItemPrice>{product.price.toLocaleString()}원</ItemPrice>
         <ItemPurchasePlace>{regionName}</ItemPurchasePlace>
-      </ItemDetailWrapper>
+      </ItemInfoWrapper>
     </ItemContainer>
   );
 }
@@ -51,7 +114,7 @@ const ItemImgWrapper = styled.div`
   align-items: center;
 `;
 
-const ItemDetailWrapper = styled.div`
+const ItemInfoWrapper = styled.div`
   display: flex;
   flex-direction: column;
   margin-top: 16px;
@@ -73,4 +136,21 @@ const ItemPrice = styled.div`
 const ItemPurchasePlace = styled.div`
   color: var(--color-lightgray);
   font-size: 0.9rem;
+`;
+
+// 좋아요
+const LikeButton = styled(S.IconMedium)`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  svg {
+    font-size: 24px;
+    transition: transform 0.2s ease-in-out;
+  }
+
+  &:hover svg {
+    transform: scale(1.1);
+  }
 `;

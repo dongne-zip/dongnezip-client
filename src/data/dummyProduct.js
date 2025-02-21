@@ -1,35 +1,66 @@
 const s3 = process.env.REACT_APP_S3;
 
 // category_id
-/* const categoryId = {
-  1: '의류/미용',
-  2: '생활/주방',
-  3: '디지털',
-  4: '도서',
-  5: '취미',
-  6: '식품',
-  7: '삽니다',
-  8: '나눔',
-}; */
+export const categoryId = [
+  { id: 0, name: '전체' },
+  { id: 1, name: '의류/미용' },
+  { id: 2, name: '생활/주방' },
+  { id: 3, name: '디지털' },
+  { id: 4, name: '도서' },
+  { id: 5, name: '취미' },
+  { id: 6, name: '식품' },
+  { id: 7, name: '삽니다' },
+  { id: 8, name: '나눔' },
+];
+
+// 서울 구 단위 지역 리스트
+export const seoulDistricts = [
+  { id: 0, name: '전체' },
+  { id: 1, name: '강남구' },
+  { id: 2, name: '강동구' },
+  { id: 3, name: '강북구' },
+  { id: 4, name: '강서구' },
+  { id: 5, name: '관악구' },
+  { id: 6, name: '광진구' },
+  { id: 7, name: '구로구' },
+  { id: 8, name: '금천구' },
+  { id: 9, name: '노원구' },
+  { id: 10, name: '도봉구' },
+  { id: 11, name: '동대문구' },
+  { id: 12, name: '동작구' },
+  { id: 13, name: '마포구' },
+  { id: 14, name: '서대문구' },
+  { id: 15, name: '서초구' },
+  { id: 16, name: '성동구' },
+  { id: 17, name: '성북구' },
+  { id: 18, name: '송파구' },
+  { id: 19, name: '양천구' },
+  { id: 20, name: '영등포구' },
+  { id: 21, name: '용산구' },
+  { id: 22, name: '은평구' },
+  { id: 23, name: '종로구' },
+  { id: 24, name: '중구' },
+  { id: 25, name: '중랑구' },
+];
+// {
+//       "id": 43,
+//       "userId": 1002,
+//       "title": "의류 25",
+//       "price": 181021,
+//       "detail": "이 상품은 테스트용으로 생성된 더미 데이터입니다.",
+//       "itemStatus": "새상품",
+//       "buyerId": null,
+//       "favCount": 0,
+//       "createdAt": "2025-02-20T22:33:18.000Z"
+//     },
 
 // 상품 dummy
 export const productList = Array.from({ length: 30 }, (_, index) => ({
   id: index + 1,
   userId: 100 + index + 1,
-  categoryId: (index % 8) + 1, // 1~8 카테고리 순환
-  regionId: 10 + (index % 15) + 1, // 11~25 지역 순환
-  mapId: [
-    '서울 강남구',
-    '서울 마포구',
-    '서울 서초구',
-    '부산 해운대구',
-    '대구 중구',
-    '광주 서구',
-    '대전 유성구',
-    '울산 남구',
-    '인천 연수구',
-    '제주 서귀포시',
-  ][index % 10],
+  categoryId: (index % 8) + 1,
+  regionId: (index % 25) + 1, // 지역 ID 매칭
+  mapId: `37.5${index % 10}1234, 127.0${index % 10}5678`, // 지도에서 사용할 위치 (위도, 경도 값 예시)
   title: [
     '아이폰 13 프로',
     '갤럭시 S22 울트라',
@@ -62,15 +93,10 @@ export const productList = Array.from({ length: 30 }, (_, index) => ({
     '명품 가방',
     '자동차 블랙박스',
   ][index % 30],
-  price: [
-    1000000, 1200000, 2500000, 700000, 350000, 300000, 200000, 550000, 1300000,
-    55000, 250000, 600000, 750000, 450000, 130000, 400000, 850000, 1400000,
-    1250000, 800000, 220000, 1500000, 1300000, 280000, 500000, 3500000, 4800000,
-    290000, 2700000, 180000,
-  ][index % 30],
-  status:
-    index % 3 === 0 ? '판매 중' : index % 3 === 1 ? '판매 완료' : '구매 희망',
-  detail: `상품 ${index + 1}의 상세 설명입니다. 사용감이 적고 상태가 좋습니다.`,
-  itemStatus: ['최상', 'A급', 'B급'][index % 3], // 아이템 상태 순환
+  price: Math.floor(Math.random() * 2000000) + 50000,
+  status: index % 2 === 0 ? '거래가능' : '거래완료',
+  detail: `상품 ${index + 1}의 상세 설명입니다.`,
+  itemStatus: ['새상품', '최상', '상', '중', '하'][index % 5],
   img: `${s3}/images/dummy/product-img.png`,
+  likes: Math.floor(Math.random() * 100), // 찜 개수를 랜덤 생성 (0~99)
 }));

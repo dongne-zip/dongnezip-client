@@ -1,41 +1,36 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-const saleReducer = createSlice({
-   categoryId: '',
+  categoryId: '',
   title: '',
   itemStatus: '',
   price: '',
   detail: '',
   imageUrl: '',
   errors: {},
+};
+
+const saleReducer = createSlice({
   name: 'sale',
   initialState,
   reducers: {
     setCategoryId: (state, action) => {
       state.categoryId = action.payload;
- 
-};
-
     },
     setTitle: (state, action) => {
       state.title = action.payload;
     },
-
     setItemStatus: (state, action) => {
       state.itemStatus = action.payload;
     },
-      
     setPrice: (state, action) => {
       state.price = action.payload;
     },
-
     setDetail: (state, action) => {
       state.detail = action.payload;
     },
     setImageUrl: (state, action) => {
       state.imageUrl = action.payload;
-
     },
     validateForm: (state) => {
       const newErrors = {};
@@ -45,9 +40,7 @@ const saleReducer = createSlice({
 
       state.errors = newErrors;
     },
-    resetForm: (state) => {
-      Object.assign(state, initialState);
-    },
+    resetForm: () => initialState,
   },
 });
 
@@ -61,4 +54,5 @@ export const {
   validateForm,
   resetForm,
 } = saleReducer.actions;
+
 export default saleReducer.reducer;

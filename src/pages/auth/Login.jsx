@@ -25,7 +25,7 @@ export default function Login() {
         { withCredentials: true },
       );
 
-      // // 로그인 성공시 토큰 저장 및 페이지 이동
+      // 로그인 성공시 토큰 저장 및 페이지 이동
       // axios.defaults.headers.common['Authorization'] =
       //   `Bearer ${response.data.access_token}`;
       // alert('로그인 성공!');

@@ -1,9 +1,15 @@
 import { styled } from 'styled-components';
 import * as S from '../../styles/mixins';
+import { seoulDistricts } from '../../data/dummyProduct';
 
 const s3 = process.env.REACT_APP_S3;
 
 export default function ProductCard({ product }) {
+  // (TODO) API 명세서 수정되면 수정
+  const regionName =
+    seoulDistricts.find((region) => region.id === product.regionId)?.name ||
+    '알 수 없음';
+
   return (
     <ItemContainer>
       <ItemImgWrapper>
@@ -17,7 +23,7 @@ export default function ProductCard({ product }) {
           </S.IconMedium>
         </ItemTitle>
         <ItemPrice>{product.price.toLocaleString()}원</ItemPrice>
-        <ItemPurchasePlace>{product.mapId}</ItemPurchasePlace>
+        <ItemPurchasePlace>{regionName}</ItemPurchasePlace>
       </ItemDetailWrapper>
     </ItemContainer>
   );

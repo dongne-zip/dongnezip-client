@@ -8,10 +8,9 @@ import {
   setImage,
   validateForm,
   resetForm,
-} from '../../store/saleSlice';
+} from '../../store/modules/saleReducer';
 import { useRef } from 'react';
-import KakaoMap from '../../components/sales/Map';
-import { MapContextProvider } from '../../components/sales/MapContext';
+import Map from '../../components/sales/Map';
 
 export default function SaleRegistration() {
   const dispatch = useDispatch();
@@ -111,9 +110,7 @@ export default function SaleRegistration() {
         </div>
         <div>
           <h3>거래 희망 장소</h3>
-          <MapContextProvider>
-            <KakaoMap />
-          </MapContextProvider>
+          <Map />
         </div>
         <button type="submit">등록하기</button>
       </form>

@@ -1,117 +1,79 @@
 import { useEffect, useState } from 'react';
-import { useMap } from './MapContext';
-import MiniMap from '../purchase/MiniMap';
+import { useDispatch, useSelector } from 'react-redux';
+import { saveMarkers } from '../../store/modules/mapReducer';
 
-export default function KakaoMap() {
-  const { markers, setMarkers } = useMap();
-  const [map, setMap] = useState(null);
-
-  useEffect(() => {
-    const waitForKakao = () => {
-      if (window.kakao && window.kakao.maps) {
-        initializeMap();
-      } else {
-        setTimeout(waitForKakao, 500);
-      }
-    };
-
-    waitForKakao();
-  }, []);
-
-  const initializeMap = () => {
-    const container = document.getElementById('map');
-    const options = {
-      center: new window.kakao.maps.LatLng(37.5665, 126.978),
-      level: 3,
-    };
-
-    const newMap = new window.kakao.maps.Map(container, options);
-    setMap(newMap);
-    loadSavedMarkers(newMap);
-  };
+const Map = () => {
+  const dispatch = useDispatch();
+  const storedMarkers = useSelector((state) => state.map.markers);
+  const [localMarkers, setLocalMarkers] = useState([]);
 
   useEffect(() => {
-    if (!map) return;
+    setLocalMarkers(storedMarkers);
+  }, [storedMarkers]);
 
-    const handleClick = (mouseEvent) => {
-      const latlng = mouseEvent.latLng;
-      const name = prompt('장소명을 입력하세요:');
-      if (!name) return;
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=7cf2cd1efa95313a520efbf5c739fb2e&libraries=services`;
+    script.async = true;
+    script.onload = () => {
+      window.kakao.maps.load(() => {
+        const mapContainer = document.getElementById('map');
+        const mapOption = {
+          center: new window.kakao.maps.LatLng(37.5665, 126.978),
+          level: 3,
+        };
+        const map = new window.kakao.maps.Map(mapContainer, mapOption);
 
-      addMarker(latlng.getLat(), latlng.getLng(), name);
+        localMarkers.forEach(({ lat, lng, info }) => {
+          const marker = new window.kakao.maps.Marker({
+            position: new window.kakao.maps.LatLng(lat, lng),
+            map,
+          });
+
+          const infowindow = new window.kakao.maps.InfoWindow({
+            content: `<div style='padding:5px;'>${info}</div>`,
+          });
+
+          window.kakao.maps.event.addListener(marker, 'click', () => {
+            infowindow.open(map, marker);
+          });
+        });
+
+        window.kakao.maps.event.addListener(map, 'click', (mouseEvent) => {
+          if (localMarkers.length >= 2) {
+            alert('최대 2개의 마커만 추가할 수 있습니다.');
+            return;
+          }
+          const latlng = mouseEvent.latLng;
+          const info = prompt('주소 상세 정보를 입력해주세요:');
+          if (!info) return;
+
+          const newMarker = {
+            id: Date.now(),
+            lat: latlng.getLat(),
+            lng: latlng.getLng(),
+            info,
+          };
+          setLocalMarkers((prev) => [...prev, newMarker]);
+        });
+      });
     };
+    document.head.appendChild(script);
+  }, [localMarkers]);
 
-    window.kakao.maps.event.addListener(map, 'click', handleClick);
-
-    return () => {
-      window.kakao.maps.event.removeListener(map, 'click', handleClick);
-    };
-  }, [map]);
-
-  const addMarker = (lat, lng, name) => {
-    if (!map) return;
-
-    const position = new window.kakao.maps.LatLng(lat, lng);
-
-    const marker = new window.kakao.maps.Marker({
-      position,
-      map,
-    });
-
-    const infowindow = new window.kakao.maps.InfoWindow({
-      content: `
-        <div style="padding:10px;">
-          ${name}
-          <br />
-          <button onclick="(function(lat, lng) {
-            ${removeMarker.toString()}(lat, lng);
-          })(${lat}, ${lng})">삭제</button>
-        </div>
-      `,
-    });
-
-    window.kakao.maps.event.addListener(marker, 'click', () => {
-      infowindow.open(map, marker);
-    });
-
-    const newMarker = { lat, lng, name, marker, infowindow };
-    setMarkers((prevMarkers) => {
-      const updatedMarkers = [...prevMarkers, newMarker];
-      saveMarkers(updatedMarkers);
-      return updatedMarkers;
-    });
-  };
-
-  const removeMarker = (lat, lng) => {
-    setMarkers((prevMarkers) => {
-      const updatedMarkers = prevMarkers.filter(
-        (marker) => marker.lat !== lat || marker.lng !== lng,
-      );
-      saveMarkers(updatedMarkers);
-      return updatedMarkers;
-    });
-  };
-
-  const saveMarkers = (markers) => {
-    const markerData = markers.map((m) => ({
-      lat: m.lat,
-      lng: m.lng,
-      name: m.name,
-    }));
-    localStorage.setItem('savedMarkers', JSON.stringify(markerData));
-  };
-
-  const loadSavedMarkers = () => {
-    const savedMarkers = JSON.parse(localStorage.getItem('savedMarkers')) || [];
-    savedMarkers.forEach(({ lat, lng, name }) => {
-      addMarker(lat, lng, name);
-    });
+  const handleSave = () => {
+    dispatch(saveMarkers(localMarkers));
+    alert('저장되었습니다.');
   };
 
   return (
     <div>
-      <div id="map" style={{ width: '70%', height: '500px' }}></div>
-      <MiniMap markers={markers} />
+      <div id="map" style={{ width: '100%', height: '400px' }}></div>
+      <button onClick={handleSave} style={{ marginTop: '10px' }}>
+        저장
+      </button>
     </div>
   );
-}
+};
+
+export default Map;

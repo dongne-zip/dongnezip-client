@@ -10,7 +10,7 @@ const initialState = {
   errors: {},
 };
 
-const saleSlice = createSlice({
+const saleReducer = createSlice({
   name: 'sale',
   initialState,
   reducers: {
@@ -54,5 +54,5 @@ export const {
   setImage,
   validateForm,
   resetForm,
-} = saleSlice.actions;
-export default saleSlice.reducer;
+} = saleReducer.actions;
+export default saleReducer.reducer;

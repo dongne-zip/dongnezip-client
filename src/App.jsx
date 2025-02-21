@@ -24,7 +24,7 @@ function App() {
           <Route path="/purchase" element={<Purchase />} />
           {/* 판매페이지 관련 */}
           <Route path="/sales" element={<Sales />} />
-          <Route path="/additem" element={<SaleRegistration />}></Route>
+          <Route path="/additem" element={<SaleRegistration />} />
 
           {/* 마이페이지 관련 */}
           <Route path="/login" element={<Login />}></Route>

@@ -1,79 +1,56 @@
 import { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 
-const MiniMap = ({ markers = [] }) => {
-  // 기본값을 빈 배열로 설정
-  const [selectedMarker, setSelectedMarker] = useState(null);
+const MiniMap = () => {
+  const markers = useSelector((state) => state.map.markers);
+  const [selectedInfo, setSelectedInfo] = useState(null);
 
   useEffect(() => {
-    if (!window.kakao || !window.kakao.maps || markers.length === 0) return;
+    const script = document.createElement('script');
+    script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=7cf2cd1efa95313a520efbf5c739fb2e&libraries=services`;
+    script.async = true;
+    script.onload = () => {
+      window.kakao.maps.load(() => {
+        const mapContainer = document.getElementById('miniMap');
+        const mapOption = {
+          center: new window.kakao.maps.LatLng(37.5665, 126.978),
+          level: 3,
+        };
+        const map = new window.kakao.maps.Map(mapContainer, mapOption);
 
-    window.kakao.maps.load(() => {
-      const container = document.getElementById('mini-map');
-      if (!container) return;
+        markers.forEach(({ lat, lng, info }) => {
+          const marker = new window.kakao.maps.Marker({
+            position: new window.kakao.maps.LatLng(lat, lng),
+            map,
+          });
 
-      const options = {
-        center: new window.kakao.maps.LatLng(markers[0].lat, markers[0].lng),
-        level: 4,
-      };
+          const infowindow = new window.kakao.maps.InfoWindow({
+            content: `<div style='padding:5px;'>${info}</div>`,
+          });
 
-      const miniMap = new window.kakao.maps.Map(container, options);
-
-      // 마커 추가
-      markers.forEach((marker) => {
-        const kakaoMarker = new window.kakao.maps.Marker({
-          position: new window.kakao.maps.LatLng(marker.lat, marker.lng),
-          map: miniMap,
-        });
-
-        // 마커 클릭 시 정보 표시
-        const infowindow = new window.kakao.maps.InfoWindow({
-          content: `<div style="padding:5px;">${marker.name}</div>`,
-        });
-
-        window.kakao.maps.event.addListener(kakaoMarker, 'click', () => {
-          infowindow.open(miniMap, kakaoMarker);
-          setSelectedMarker(marker); // 선택된 마커 정보 업데이트
+          window.kakao.maps.event.addListener(marker, 'click', () => {
+            infowindow.open(map, marker);
+            setSelectedInfo(info);
+          });
         });
       });
-
-      // 지도 범위 자동 조정
-      if (markers.length > 1) {
-        const bounds = new window.kakao.maps.LatLngBounds();
-        markers.forEach((marker) => {
-          bounds.extend(new window.kakao.maps.LatLng(marker.lat, marker.lng));
-        });
-        miniMap.setBounds(bounds);
-      }
-    });
+    };
+    document.head.appendChild(script);
   }, [markers]);
 
   return (
     <div>
-      <div
-        id="mini-map"
-        style={{
-          width: '50%',
-          height: '250px',
-          borderRadius: '10px',
-          cursor: 'pointer',
-        }}
-      ></div>
-
-      {/* 선택한 마커 정보 표시 */}
-      {selectedMarker && (
+      <div id="miniMap" style={{ width: '100%', height: '300px' }}></div>
+      {selectedInfo && (
         <div
           style={{
             marginTop: '10px',
             padding: '10px',
             border: '1px solid #ddd',
-            borderRadius: '10px',
-            background: '#f9f9f9',
+            borderRadius: '5px',
           }}
         >
-          <h3>📍 선택한 마커 정보</h3>
-          <p>
-            <strong>장소명:</strong> {selectedMarker.name}
-          </p>
+          <strong>주소 상세 정보:</strong> {selectedInfo}
         </div>
       )}
     </div>

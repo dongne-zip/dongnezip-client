@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import axios from 'axios';
 
 const MiniMap = () => {

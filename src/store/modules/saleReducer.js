@@ -10,7 +10,7 @@ const initialState = {
   errors: {},
 };
 
-const saleSlice = createSlice({
+const saleReducer = createSlice({
   name: 'sale',
   initialState,
   reducers: {
@@ -37,11 +37,10 @@ const saleSlice = createSlice({
       if (!state.title) newErrors.title = '입력해주세요';
       if (!state.price) newErrors.price = '입력해주세요';
       if (!state.detail) newErrors.detail = '입력해주세요';
+
       state.errors = newErrors;
     },
-    resetForm: (state) => {
-      Object.assign(state, initialState);
-    },
+    resetForm: () => initialState,
   },
 });
 
@@ -54,5 +53,6 @@ export const {
   setImageUrl,
   validateForm,
   resetForm,
-} = saleSlice.actions;
-export default saleSlice.reducer;
+} = saleReducer.actions;
+
+export default saleReducer.reducer;

@@ -4,6 +4,8 @@ import * as S from '../../styles/mixins';
 import styled from 'styled-components';
 import axios from 'axios';
 
+const API = process.env.REACT_APP_API_SERVER;
+
 export default function Register() {
   const [email, setEmail] = useState('');
   const [isValid, setIsValid] = useState(null);
@@ -66,15 +68,12 @@ export default function Register() {
 
     if (isFormValid) {
       try {
-        const response = await axios.post(
-          'http://localhost:8080/api-server/user/join',
-          {
-            email: email,
-            nickname: nickname,
-            password: password,
-            name: document.getElementById('userName').value,
-          },
-        );
+        const response = await axios.post(`${API}/user/join`, {
+          email: email,
+          nickname: nickname,
+          password: password,
+          name: document.getElementById('userName').value,
+        });
 
         if (response.status === 200) {
           alert('회원가입이 완료되었습니다!');
@@ -90,12 +89,9 @@ export default function Register() {
   // 이메일 중복 확인
   const handleEmailCheck = async () => {
     try {
-      const response = await axios.post(
-        'http://localhost:8080/api-server/user/checkId',
-        {
-          email: email,
-        },
-      );
+      const response = await axios.post(`${API}/user/checkId`, {
+        email: email,
+      });
       console.log('response', response);
       if (response.status === 200) {
         if (response.data.message) {
@@ -114,12 +110,9 @@ export default function Register() {
 
   const handleEmailVerification = async () => {
     try {
-      const response = await axios.post(
-        'http://localhost:8080/api-server/user/sendCode',
-        {
-          email: email,
-        },
-      );
+      const response = await axios.post('${API}/user/sendCode', {
+        email: email,
+      });
       console.log('send code response: ', response);
       if (response.status === 200) {
         alert('인증번호가 이메일로 전송되었습니다!');
@@ -135,14 +128,11 @@ export default function Register() {
   const handleCodeVerification = async () => {
     const token = localStorage.getItem('emailAuthToken');
     try {
-      const response = await axios.post(
-        'http://localhost:8080/api-server/user/verifyCode',
-        {
-          email: email,
-          code: verificationCode,
-          token: token,
-        },
-      );
+      const response = await axios.post('${API}/user/verifyCode', {
+        email: email,
+        code: verificationCode,
+        token: token,
+      });
       console.log('verficationCODE:', response);
       console.log('verficationCODE:', response.code);
       console.log('verficationCODE:', response.token);
@@ -162,12 +152,9 @@ export default function Register() {
 
   const handleNicknameCheck = async () => {
     try {
-      const response = await axios.post(
-        'http://localhost:8080/api-server/user/checkNick',
-        {
-          nickname: nickname,
-        },
-      );
+      const response = await axios.post('${API}/user/checkNick', {
+        nickname: nickname,
+      });
       if (response.status === 200) {
         alert('사용 가능한 닉네임입니다.');
       }

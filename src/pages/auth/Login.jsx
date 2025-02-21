@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import * as S from '../../styles/mixins';
 import styled from 'styled-components';
 import axios from 'axios';
-
+const API = process.env.REACT_APP_API_SERVER;
 export default function Login() {
   const navigate = useNavigate();
 
@@ -20,7 +20,7 @@ export default function Login() {
     try {
       // 로그인 요청
       const response = await axios.post(
-        'http://localhost:8080/api-server/user/login/local',
+        `${API}/user/local/login`,
         { email, password },
         { withCredentials: true },
       );
@@ -41,7 +41,7 @@ export default function Login() {
   };
 
   const handleKakaoLogin = () => {
-    navigate('/login/kakao');
+    navigate(`${API}/userlogin/kakao`);
   };
 
   return (

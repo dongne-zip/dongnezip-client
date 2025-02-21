@@ -20,7 +20,7 @@ export default function Login() {
     try {
       // 로그인 요청
       const response = await axios.post(
-        `${API}/user/local/login`,
+        `${API}/user/login/local`,
         { email, password },
         { withCredentials: true },
       );

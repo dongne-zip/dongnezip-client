@@ -68,6 +68,7 @@ export default function Register() {
 
     if (isFormValid) {
       try {
+        console.log('API', API);
         const response = await axios.post(`${API}/user/join`, {
           email: email,
           nickname: nickname,
@@ -89,17 +90,19 @@ export default function Register() {
   // 이메일 중복 확인
   const handleEmailCheck = async () => {
     try {
+      console.log('API', API);
+
       const response = await axios.post(`${API}/user/checkId`, {
         email: email,
       });
       console.log('response', response);
-      if (response.status === 200) {
+      if (response.data.result) {
         if (response.data.message) {
           setIsEmailAvailable(true);
-          alert('사용 가능한 이메일입니다.');
+          alert(response.data.message);
         } else {
           setIsEmailAvailable(false);
-          alert('이미 등록된 이메일입니다.');
+          alert(response.data.message);
         }
       }
     } catch (error) {
@@ -110,7 +113,7 @@ export default function Register() {
 
   const handleEmailVerification = async () => {
     try {
-      const response = await axios.post('${API}/user/sendCode', {
+      const response = await axios.post(`${API}/user/sendCode`, {
         email: email,
       });
       console.log('send code response: ', response);
@@ -128,7 +131,7 @@ export default function Register() {
   const handleCodeVerification = async () => {
     const token = localStorage.getItem('emailAuthToken');
     try {
-      const response = await axios.post('${API}/user/verifyCode', {
+      const response = await axios.post(`${API}/user/verifyCode`, {
         email: email,
         code: verificationCode,
         token: token,
@@ -152,7 +155,7 @@ export default function Register() {
 
   const handleNicknameCheck = async () => {
     try {
-      const response = await axios.post('${API}/user/checkNick', {
+      const response = await axios.post(`${API}/user/checkNick`, {
         nickname: nickname,
       });
       if (response.status === 200) {

@@ -1,41 +1,36 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-const saleReducer = createSlice({
-   categoryId: '',
+  categoryId: '',
   title: '',
   itemStatus: '',
   price: '',
   detail: '',
   imageUrl: '',
   errors: {},
+};
+
+const saleSlice = createSlice({
   name: 'sale',
   initialState,
   reducers: {
     setCategoryId: (state, action) => {
       state.categoryId = action.payload;
- 
-};
-
     },
     setTitle: (state, action) => {
       state.title = action.payload;
     },
-
     setItemStatus: (state, action) => {
       state.itemStatus = action.payload;
     },
-      
     setPrice: (state, action) => {
       state.price = action.payload;
     },
-
     setDetail: (state, action) => {
       state.detail = action.payload;
     },
     setImageUrl: (state, action) => {
       state.imageUrl = action.payload;
-
     },
     validateForm: (state) => {
       const newErrors = {};
@@ -46,7 +41,7 @@ const saleReducer = createSlice({
       state.errors = newErrors;
     },
     resetForm: (state) => {
-      Object.assign(state, initialState);
+      return initialState; // 안전하게 초기 상태로 리셋
     },
   },
 });
@@ -60,5 +55,6 @@ export const {
   setImageUrl,
   validateForm,
   resetForm,
-} = saleReducer.actions;
-export default saleReducer.reducer;
+} = saleSlice.actions;
+
+export default saleSlice.reducer;

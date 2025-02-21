@@ -1,0 +1,102 @@
+const s3 = process.env.REACT_APP_S3;
+
+// category_id
+export const categoryId = [
+  { id: 0, name: '전체' },
+  { id: 1, name: '의류/미용' },
+  { id: 2, name: '생활/주방' },
+  { id: 3, name: '디지털' },
+  { id: 4, name: '도서' },
+  { id: 5, name: '취미' },
+  { id: 6, name: '식품' },
+  { id: 7, name: '삽니다' },
+  { id: 8, name: '나눔' },
+];
+
+// 서울 구 단위 지역 리스트
+export const seoulDistricts = [
+  { id: 0, name: '전체' },
+  { id: 1, name: '강남구' },
+  { id: 2, name: '강동구' },
+  { id: 3, name: '강북구' },
+  { id: 4, name: '강서구' },
+  { id: 5, name: '관악구' },
+  { id: 6, name: '광진구' },
+  { id: 7, name: '구로구' },
+  { id: 8, name: '금천구' },
+  { id: 9, name: '노원구' },
+  { id: 10, name: '도봉구' },
+  { id: 11, name: '동대문구' },
+  { id: 12, name: '동작구' },
+  { id: 13, name: '마포구' },
+  { id: 14, name: '서대문구' },
+  { id: 15, name: '서초구' },
+  { id: 16, name: '성동구' },
+  { id: 17, name: '성북구' },
+  { id: 18, name: '송파구' },
+  { id: 19, name: '양천구' },
+  { id: 20, name: '영등포구' },
+  { id: 21, name: '용산구' },
+  { id: 22, name: '은평구' },
+  { id: 23, name: '종로구' },
+  { id: 24, name: '중구' },
+  { id: 25, name: '중랑구' },
+];
+// {
+//       "id": 43,
+//       "userId": 1002,
+//       "title": "의류 25",
+//       "price": 181021,
+//       "detail": "이 상품은 테스트용으로 생성된 더미 데이터입니다.",
+//       "itemStatus": "새상품",
+//       "buyerId": null,
+//       "favCount": 0,
+//       "createdAt": "2025-02-20T22:33:18.000Z"
+//     },
+
+// 상품 dummy
+export const productList = Array.from({ length: 30 }, (_, index) => ({
+  id: index + 1,
+  userId: 100 + index + 1,
+  categoryId: (index % 8) + 1,
+  regionId: (index % 25) + 1, // 지역 ID 매칭
+  mapId: `37.5${index % 10}1234, 127.0${index % 10}5678`, // 지도에서 사용할 위치 (위도, 경도 값 예시)
+  title: [
+    '아이폰 13 프로',
+    '갤럭시 S22 울트라',
+    '맥북 프로 14인치',
+    'PS5 디스크 에디션',
+    '닌텐도 스위치 OLED',
+    '에어팟 프로 2세대',
+    '갤럭시 버즈2 프로',
+    '삼성 스마트 모니터',
+    'LG 울트라파인 5K',
+    '한우 1++ 등급 500g',
+    '드롱기 커피 머신',
+    '루이비통 지갑',
+    '에르메스 스카프',
+    '노스페이스 패딩',
+    '나이키 에어포스 1',
+    '샤오미 로봇청소기',
+    '다이슨 청소기 V12',
+    '아이패드 프로 12.9',
+    '갤럭시 탭 S8 울트라',
+    '레고 스타워즈 밀레니엄 팔콘',
+    '전자책 리더기',
+    '삼성 에어컨',
+    'LG 건조기',
+    '브리츠 블루투스 스피커',
+    '코닥 필름 카메라',
+    '소니 A7 IV 미러리스',
+    '캐논 EOS R5',
+    '구찌 선글라스',
+    '명품 가방',
+    '자동차 블랙박스',
+  ][index % 30],
+  price: Math.floor(Math.random() * 2000000) + 50000,
+  status: index % 2 === 0 ? '거래가능' : '거래완료',
+  detail: `상품 ${index + 1}의 상세 설명입니다.`,
+  itemStatus: ['새상품', '최상', '상', '중', '하'][index % 5],
+  img: `${s3}/images/dummy/product-img.png`,
+  likes: Math.floor(Math.random() * 100), // 찜 개수를 랜덤 생성 (0~99)
+}));

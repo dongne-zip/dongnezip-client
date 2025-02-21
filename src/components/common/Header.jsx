@@ -64,7 +64,9 @@ export default function Header() {
         <S.Icon>
           <span className="material-symbols-outlined">dark_mode</span>
         </S.Icon>
-        <S.Button>로그인</S.Button>
+        <Link to={'/login'}>
+          <S.Button>로그인</S.Button>
+        </Link>
       </S.UtilContainer>
 
       {/* 배경 오버레이 */}

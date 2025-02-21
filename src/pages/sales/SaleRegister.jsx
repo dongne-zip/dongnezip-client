@@ -14,6 +14,7 @@ import Map from '../../components/sales/Map';
 import * as S from '../../styles/mixins';
 import styled from 'styled-components';
 
+
 export default function SaleRegister() {
   const dispatch = useDispatch();
   const { categoryId, title, itemStatus, price, detail, errors } = useSelector(

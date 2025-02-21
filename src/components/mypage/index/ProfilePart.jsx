@@ -1,22 +1,17 @@
-import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { Link } from 'react-router-dom';
+// import userList from '../../../data/dummyUser';
 
-export default function ProfilePart({ nickname: initialNickname }) {
-  const [nickname, setNickname] = useState('');
-  const location = useLocation();
-  const { userId } = location.state || {};
+export default function ProfilePart() {
+  const nickname = useSelector((state) => state.authReducer.nickname);
 
-  useEffect(() => {
-    setNickname(initialNickname);
-  }, [initialNickname]); // `initialNickname`이 바뀔 때마다 실행
+  console.log('user', nickname);
 
   return (
     <div>
-      <img src="" alt="프로필 사진" />
-      <p>
-        {userId}: {nickname}님, 반갑습니다
-      </p>
-      <Link to="/change">
+      <img src=" " alt="프로필 사진" />
+      <p>{nickname}님, 반갑습니다</p>
+      <Link to="/changeInfo">
         <button>회원정보 수정</button>
       </Link>
     </div>

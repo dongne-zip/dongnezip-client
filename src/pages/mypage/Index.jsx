@@ -4,12 +4,11 @@ import PurchasePart from '../../components/mypage/purchase/PurchasePart';
 import SalePart from '../../components/mypage/sale/SalePart';
 
 export default function Index() {
-  const userNickname = '';
   return (
     <>
       <h3>마이페이지</h3>
       <div className="mypageContainer">
-        <ProfilePart nickname={userNickname} />
+        <ProfilePart />
         <SalePart />
         <PurchasePart />
         <FavoritePart />

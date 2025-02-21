@@ -11,6 +11,7 @@ const Map = () => {
     setLocalMarkers(storedMarkers);
   }, [storedMarkers]);
 
+
   useEffect(() => {
     const script = document.createElement('script');
     script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=7cf2cd1efa95313a520efbf5c739fb2e&libraries=services`;
@@ -24,6 +25,7 @@ const Map = () => {
         };
         const map = new window.kakao.maps.Map(mapContainer, mapOption);
 
+
         localMarkers.forEach(({ lat, lng, info }) => {
           const marker = new window.kakao.maps.Marker({
             position: new window.kakao.maps.LatLng(lat, lng),
@@ -32,7 +34,7 @@ const Map = () => {
 
           const infowindow = new window.kakao.maps.InfoWindow({
             content: `<div style='padding:5px;'>${info}</div>`,
-          });
+
 
           window.kakao.maps.event.addListener(marker, 'click', () => {
             infowindow.open(map, marker);
@@ -63,6 +65,7 @@ const Map = () => {
 
   const handleSave = () => {
     dispatch(saveMarkers(localMarkers));
+
     alert('저장되었습니다.');
   };
 

@@ -10,7 +10,7 @@ const initialState = {
   errors: {},
 };
 
-const saleSlice = createSlice({
+const saleReducer = createSlice({
   name: 'sale',
   initialState,
   reducers: {
@@ -40,9 +40,7 @@ const saleSlice = createSlice({
 
       state.errors = newErrors;
     },
-    resetForm: (state) => {
-      return initialState; // 안전하게 초기 상태로 리셋
-    },
+    resetForm: () => initialState,
   },
 });
 
@@ -55,6 +53,6 @@ export const {
   setImageUrl,
   validateForm,
   resetForm,
-} = saleSlice.actions;
+} = saleReducer.actions;
 
-export default saleSlice.reducer;
+export default saleReducer.reducer;

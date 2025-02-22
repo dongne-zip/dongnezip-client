@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import * as S from '../../styles/mixins';
 import styled from 'styled-components';
@@ -11,7 +11,13 @@ export default function Login() {
   const dispatch = useDispatch();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user) {
+      dispatch(loginUser(user)); // Dispatch the user data to Redux
+      navigate('/myPage'); // Redirect to myPage if already logged in
+    }
+  }, [dispatch, navigate]);
   const handleLogin = async (e) => {
     e.preventDefault();
     if (!email || !password) {
@@ -26,14 +32,9 @@ export default function Login() {
         { email, password },
         { withCredentials: true },
       );
-
-      // 로그인 성공시 토큰 저장 및 페이지 이동
-      // axios.defaults.headers.common['Authorization'] =
-      //   `Bearer ${response.data.access_token}`;
-      // alert('로그인 성공!');
-      // navigate('/myPage');
-      console.log(response);
       if (response.status === 200) {
+        axios.defaults.headers.common['Authorization'] =
+          `Bearer ${response.data.access_token}`;
         const { user, access_token } = response.data;
         alert('로그인 성공!');
         localStorage.setItem('user', JSON.stringify(user));
@@ -41,6 +42,20 @@ export default function Login() {
         dispatch(loginUser(user)); // Dispatch the user data to Redux
         navigate('/myPage');
       }
+      // 로그인 성공시 토큰 저장 및 페이지 이동
+      // axios.defaults.headers.common['Authorization'] =
+      //   `Bearer ${response.data.access_token}`;
+      // alert('로그인 성공!');
+      // navigate('/myPage');
+      console.log(response);
+      // if (response.status === 200) {
+      //   const { user, access_token } = response.data;
+      //   alert('로그인 성공!');
+      //   localStorage.setItem('user', JSON.stringify(user));
+      //   localStorage.setItem('access_token', access_token);
+      //   dispatch(loginUser(user)); // Dispatch the user data to Redux
+      //   navigate('/myPage');
+      // }
     } catch (error) {
       alert('이메일 또는 비밀번호가 틀렸습니다.');
     }

@@ -10,7 +10,7 @@ import MiniMap from '../../components/purchase/MiniMap';
 // import { useEffect } from 'react';
 // import axios from 'axios';
 
-// const API = process.env.REACT_APP_API_SERVER || 'http://localhost:5000';
+// const API = process.env.REACT_APP_API_SERVER;
 
 export default function ProductDetail() {
   const { id } = useParams();

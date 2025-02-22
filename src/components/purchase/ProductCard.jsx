@@ -25,15 +25,15 @@ export default function ProductCard({ product }) {
   const fetchLikedStatus = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${API}/item/${product.id}/favorites`);
-      console.log('좋아요 상태 조회 응답:', res.data);
+      const res = await axios.get(`${API}/item/favorites/${product.id}`);
+      // console.log('좋아요 상태 조회 응답:', res.data);
 
       if (res.data.success) {
         setLiked(res.data.isFavorite);
         setLikeCount(res.data.favCount);
       }
     } catch (error) {
-      console.error('좋아요 상태 조회 오류:', error);
+      // console.error('좋아요 상태 조회 오류:', error);
       setLoading(false);
     }
   };
@@ -46,22 +46,39 @@ export default function ProductCard({ product }) {
   const handleLikeClick = async (e) => {
     e.preventDefault(); // 부모 요소 링크 이동 방지
 
-    console.log('API 서버 주소:', API);
-    console.log('상품 id:', product.id);
-    console.log('좋아요 요청 데이터:', { itemId: product.id });
+    if (loading) return; // 중복 요청 방지
+    setLoading(true);
 
+    const newLikedState = !liked;
+
+    try {
+      if (newLikedState) {
+        // 좋아요 추가
+        const res = await axios.post(`${API}/item/favorites`, {
+          itemId: product.id,
+        });
+
+        if (!res.data.success) throw new Error(res.data.message);
+      } else {
+        // 좋아요 취소
+        const res = await axios.delete(`${API}/item/favorites/${product.id}`);
+
+        if (!res.data.success) throw new Error(res.data.message);
+      }
+
+      // 서버 요청 성공 시 상태 업데이트
+      setLiked(newLikedState);
+      setLikeCount((prev) => (newLikedState ? prev + 1 : prev - 1));
+    } catch (error) {
+      // console.error('좋아요 상태 변경 중 오류:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  /* 
     setLiked((prev) => !prev);
     setLikeCount((prev) => (liked ? prev - 1 : prev + 1));
-
-    // setLiked((prev) => {
-    //   const newLikedState = !prev;
-    //   console.log('좋아요 상태 변경됨:', newLikedState);
-    //   setLikeCount((prevCount) =>
-    //     newLikedState ? prevCount + 1 : prevCount - 1,
-    //   );
-    //   return newLikedState;
-    // });
-
+    
     try {
       const res = await axios.post(`${API}/item/favorites`, {
         itemId: product.id,
@@ -108,7 +125,7 @@ export default function ProductCard({ product }) {
         console.error('요청 설정 중 오류 발생:', error.message);
       }
     }
-  };
+  }; */
 
   return (
     <ItemContainer>

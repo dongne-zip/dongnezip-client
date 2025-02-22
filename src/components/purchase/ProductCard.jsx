@@ -8,7 +8,7 @@ import { faHeart as solidHeart } from '@fortawesome/free-solid-svg-icons'; // ì±
 
 // import { seoulDistricts } from '../../data/dummyProduct';
 
-// const s3 = process.env.REACT_APP_S3;
+const s3 = process.env.REACT_APP_S3;
 const API = process.env.REACT_APP_API_SERVER;
 
 export default function ProductCard({ product }) {
@@ -113,7 +113,10 @@ export default function ProductCard({ product }) {
   return (
     <ItemContainer>
       <ItemImgWrapper>
-        <img src={product.imgUrl || } alt={product.title} />
+        <img
+          src={product.imgUrl || `${s3}/images/dummy/product-img.png`}
+          alt={product.title}
+        />
       </ItemImgWrapper>
       <ItemInfoWrapper>
         <ItemTitle>

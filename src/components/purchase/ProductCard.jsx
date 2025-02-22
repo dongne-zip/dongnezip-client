@@ -8,82 +8,143 @@ import { faHeart as solidHeart } from '@fortawesome/free-solid-svg-icons'; // �
 
 // import { seoulDistricts } from '../../data/dummyProduct';
 
-// const s3 = process.env.REACT_APP_S3;
+const s3 = process.env.REACT_APP_S3;
 const API = process.env.REACT_APP_API_SERVER;
 
 export default function ProductCard({ product }) {
-  const [liked, setLiked] = useState(product.isLiked || false);
-  const [likeCount, setLikeCount] = useState(product.likes || 0);
+  const [liked, setLiked] = useState(product.isFavorite);
+  const [likeCount, setLikeCount] = useState(product.favCount);
+  const [loading, setLoading] = useState(false);
 
   // 지역명
-  const regionName = product.region
-    ? `${product.region.province} ${product.region.district}`
+  const regionName = product.Region
+    ? `${product.Region.district}`
     : '알 수 없음';
 
+  // 서버에서 좋아요 상태 가져오기
+  const fetchLikedStatus = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(`${API}/item/favorites/${product.id}`);
+      // console.log('좋아요 상태 조회 응답:', res.data);
+
+      if (res.data.success) {
+        setLiked(res.data.isFavorite);
+        setLikeCount(res.data.favCount);
+      }
+    } catch (error) {
+      // console.error('좋아요 상태 조회 오류:', error);
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    console.log('Liked 상태 변경됨:', liked);
-  }, [liked]);
+    fetchLikedStatus();
+  }, [product.id]);
 
   // 좋아요
   const handleLikeClick = async (e) => {
     e.preventDefault(); // 부모 요소 링크 이동 방지
 
-    console.log('API 서버 주소:', API);
-    console.log('상품 id:', product.id);
-    console.log('좋아요 요청 데이터:', { itemId: product.id });
+    if (loading) return; // 중복 요청 방지
+    setLoading(true);
 
+    const newLikedState = !liked;
+
+    try {
+      if (newLikedState) {
+        // 좋아요 추가
+        const res = await axios.post(`${API}/item/favorites`, {
+          itemId: product.id,
+        });
+
+        if (!res.data.success) throw new Error(res.data.message);
+      } else {
+        // 좋아요 취소
+        const res = await axios.delete(`${API}/item/favorites/${product.id}`);
+
+        if (!res.data.success) throw new Error(res.data.message);
+      }
+
+      // 서버 요청 성공 시 상태 업데이트
+      setLiked(newLikedState);
+      setLikeCount((prev) => (newLikedState ? prev + 1 : prev - 1));
+    } catch (error) {
+      // console.error('좋아요 상태 변경 중 오류:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  /* 
+    setLiked((prev) => !prev);
+    setLikeCount((prev) => (liked ? prev - 1 : prev + 1));
+    
     try {
       const res = await axios.post(`${API}/item/favorites`, {
         itemId: product.id,
       });
 
-      console.log('서버 응답 데이터:', res.data);
+      console.log('좋아요 요청 응답 데이터:', res.data);
       console.log('서버 응답 상태코드:', res.status);
-      console.log('res.message:', res.message);
+      console.log('res.data.message:', res.data.message);
 
       if (res.data.success) {
         alert(res.data.message);
-
-        setLiked((prev) => {
-          const newLikedState = !prev;
-          console.log('좋아요 상태 변경됨:', newLikedState);
-          setLikeCount((prevCount) =>
-            newLikedState ? prevCount + 1 : prevCount - 1,
-          );
-          return newLikedState;
-        });
+        await fetchLikedStatus(); //서버에서 상태를 다시 불러와 동기화
+      } else {
+        alert(res.data.message);
       }
     } catch (error) {
-      // (todo) 상태 코드 기반으로 수정하기
       console.error('좋아요 추가 중 오류 발생:', error);
+
+      setLiked((prev) => !prev);
+      setLikeCount((prev) => (liked ? prev + 1 : prev - 1));
+
+      // setLiked((prev) => {
+      //   const newLikedState = !prev;
+      //   setLikeCount((prevCount) =>
+      //     newLikedState ? prevCount + 1 : prevCount - 1,
+      //   );
+      //   return newLikedState;
+      // });
 
       if (error.response) {
         console.error('서버 응답 코드:', error.response.status);
         console.error('서버 응답 데이터:', error.response.data);
         console.error('서버 응답 상태 텍스트:', error.response.statusText);
+
+        if (error.response.data && error.response.data.message) {
+          alert(error.response.data.message);
+        } else {
+          alert('서버에서 오류가 발생했습니다.');
+        }
       } else if (error.request) {
+        alert('서버 응답이 없습니다. 인터넷 연결을 확인해주세요.');
         console.error('요청은 전송되었지만 응답을 받지 못함:', error.request);
       } else {
         console.error('요청 설정 중 오류 발생:', error.message);
       }
     }
-  };
+  }; */
 
   return (
     <ItemContainer>
       <ItemImgWrapper>
-        <img src={product.imgUrl} alt={product.title} />
+        <img
+          src={product.imgUrl || `${s3}/images/dummy/product-img.png`}
+          alt={product.title}
+        />
       </ItemImgWrapper>
       <ItemInfoWrapper>
         <ItemTitle>
           <div>{product.title}</div>
-          <LikeButton onClick={handleLikeClick}>
+          <LikeButton onClick={handleLikeClick} disabled={loading}>
             <FontAwesomeIcon
               icon={liked ? solidHeart : regularHeart}
               style={{ color: liked ? 'red' : 'black' }}
             />
           </LikeButton>
-          <div>{likeCount}</div>
+          {loading ? null : <LikeCount liked={liked}>{likeCount}</LikeCount>}
         </ItemTitle>
         <ItemPrice>{product.price.toLocaleString()}원</ItemPrice>
         <ItemPurchasePlace>{regionName}</ItemPurchasePlace>
@@ -153,4 +214,9 @@ const LikeButton = styled(S.IconMedium)`
   &:hover svg {
     transform: scale(1.1);
   }
+`;
+
+const LikeCount = styled.div`
+  font-size: 18px;
+  color: ${({ liked }) => (liked ? 'red' : 'black')};
 `;

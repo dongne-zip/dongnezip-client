@@ -28,6 +28,13 @@ export default function ProductCard({ product }) {
       const res = await axios.get(`${API}/item/favorites/${product.id}`);
       // console.log('좋아요 상태 조회 응답:', res.data);
 
+      if (res.status === 404) {
+        // 좋아요가 없는 경우 기본값 설정
+        setLiked(false);
+        setLikeCount(0);
+        return;
+      }
+
       if (res.data.success) {
         setLiked(res.data.isFavorite);
         setLikeCount(res.data.favCount);
@@ -39,6 +46,10 @@ export default function ProductCard({ product }) {
   };
 
   useEffect(() => {
+    if (!product.id) {
+      console.warn('product.id가 없음:', product);
+      return;
+    }
     fetchLikedStatus();
   }, [product.id]);
 
@@ -50,6 +61,8 @@ export default function ProductCard({ product }) {
     setLoading(true);
 
     const newLikedState = !liked;
+
+    // (todo) 콘솔 에러 수정하기
 
     try {
       if (newLikedState) {
@@ -75,57 +88,6 @@ export default function ProductCard({ product }) {
       setLoading(false);
     }
   };
-  /* 
-    setLiked((prev) => !prev);
-    setLikeCount((prev) => (liked ? prev - 1 : prev + 1));
-    
-    try {
-      const res = await axios.post(`${API}/item/favorites`, {
-        itemId: product.id,
-      });
-
-      console.log('좋아요 요청 응답 데이터:', res.data);
-      console.log('서버 응답 상태코드:', res.status);
-      console.log('res.data.message:', res.data.message);
-
-      if (res.data.success) {
-        alert(res.data.message);
-        await fetchLikedStatus(); //서버에서 상태를 다시 불러와 동기화
-      } else {
-        alert(res.data.message);
-      }
-    } catch (error) {
-      console.error('좋아요 추가 중 오류 발생:', error);
-
-      setLiked((prev) => !prev);
-      setLikeCount((prev) => (liked ? prev + 1 : prev - 1));
-
-      // setLiked((prev) => {
-      //   const newLikedState = !prev;
-      //   setLikeCount((prevCount) =>
-      //     newLikedState ? prevCount + 1 : prevCount - 1,
-      //   );
-      //   return newLikedState;
-      // });
-
-      if (error.response) {
-        console.error('서버 응답 코드:', error.response.status);
-        console.error('서버 응답 데이터:', error.response.data);
-        console.error('서버 응답 상태 텍스트:', error.response.statusText);
-
-        if (error.response.data && error.response.data.message) {
-          alert(error.response.data.message);
-        } else {
-          alert('서버에서 오류가 발생했습니다.');
-        }
-      } else if (error.request) {
-        alert('서버 응답이 없습니다. 인터넷 연결을 확인해주세요.');
-        console.error('요청은 전송되었지만 응답을 받지 못함:', error.request);
-      } else {
-        console.error('요청 설정 중 오류 발생:', error.message);
-      }
-    }
-  }; */
 
   return (
     <ItemContainer>

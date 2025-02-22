@@ -54,12 +54,10 @@ export default function Index() {
 
   // 필터링된 상품 목록
   const filteredProducts = products.filter((product) => {
-    // console.log('product:', product);
-
     return (
-      (!available || product.itemStatus === 'available') &&
-      (location === 0 || Number(product.regionId) === Number(location)) &&
-      (category === 0 || Number(product.categoryId) === Number(category))
+      (!available || product.buyerId === null) && // 거래 가능 여부: buyerId가 null인지 확인
+      (location === 0 || Number(product.Region.id) === Number(location)) && // 지역 필터
+      (category === 0 || Number(product.Category.id) === Number(category)) // 카테고리 필터
     );
   });
 
@@ -68,7 +66,7 @@ export default function Index() {
     if (sortOption === 'latest') {
       return b.id - a.id;
     } else if (sortOption === 'popular') {
-      return b.likes - a.likes; // 좋아요 개수 기준 정렬
+      return b.favCount - a.favCount; // 좋아요 개수 기준 정렬
     }
     return 0;
   });

@@ -8,13 +8,6 @@ export default function NotFound() {
   return (
     <Container>
       <NotFoundLayout>
-        <AnimationBox>
-          <DotLottieReact
-            src="https://lottie.host/c36f482a-c374-49f6-a0cf-bd306ea151ae/r8AIcSKLKW.lottie"
-            loop
-            autoplay
-          />
-        </AnimationBox>
         <TextBox>
           <h1>앗! 페이지를 찾을 수 없어요</h1>
           <p>요청하신 페이지를 찾을 수 없습니다.</p>
@@ -27,6 +20,13 @@ export default function NotFound() {
             <button onClick={() => navigate('/sales')}>판매 등록하기</button>
           </ButtonGroup>
         </TextBox>
+        <AnimationBox>
+          <DotLottieReact
+            src="https://lottie.host/c36f482a-c374-49f6-a0cf-bd306ea151ae/r8AIcSKLKW.lottie"
+            loop
+            autoplay
+          />
+        </AnimationBox>
       </NotFoundLayout>
     </Container>
   );
@@ -47,12 +47,11 @@ const Container = styled.div`
 
 const NotFoundLayout = styled.div`
   display: grid;
-  grid-template-columns: 1fr 1.5fr; /* 텍스트 1 : 애니메이션 1.5 */
+  grid-template-columns: 1fr 1.5fr;
   align-items: center;
   max-width: 1024px; //헤더와 동일
   width: 100%;
-  height: calc(100vh - 80px); /* 헤더 높이를 고려한 높이 조정 */
-  gap: 20px;
+  height: calc(100vh - 80px);
 
   @media (max-width: 767px) {
     grid-template-columns: 1fr;
@@ -64,6 +63,7 @@ const NotFoundLayout = styled.div`
 const TextBox = styled.div`
   max-width: 500px;
   padding: 20px;
+  margin-left: 20px;
 
   h1 {
     font-size: 32px;
@@ -78,7 +78,7 @@ const TextBox = styled.div`
 
   @media (max-width: 767px) {
     max-width: 100%;
-    order: 2; /* 작은 화면에서 텍스트가 아래로 이동 */
+    order: 2;
   }
 `;
 
@@ -121,6 +121,6 @@ const AnimationBox = styled.div`
 
   @media (max-width: 767px) {
     width: 100%;
-    order: 1; /* 작은 화면에서 애니메이션이 위로 이동 */
+    order: 1;
   }
 `;

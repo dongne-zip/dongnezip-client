@@ -3,10 +3,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import * as S from '../../styles/mixins';
 import styled from 'styled-components';
 import axios from 'axios';
+import { useDispatch } from 'react-redux';
+import { loginUser } from '../../store/types';
 const API = process.env.REACT_APP_API_SERVER;
 export default function Login() {
   const navigate = useNavigate();
-
+  const dispatch = useDispatch();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -32,7 +34,11 @@ export default function Login() {
       // navigate('/myPage');
       console.log(response);
       if (response.status === 200) {
+        const { user, access_token } = response.data;
         alert('로그인 성공!');
+        localStorage.setItem('user', JSON.stringify(user));
+        localStorage.setItem('access_token', access_token);
+        dispatch(loginUser(user)); // Dispatch the user data to Redux
         navigate('/myPage');
       }
     } catch (error) {

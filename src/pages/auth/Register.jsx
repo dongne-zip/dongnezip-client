@@ -97,13 +97,11 @@ export default function Register() {
       });
       console.log('response', response);
       if (response.data.result) {
-        if (response.data.message) {
-          setIsEmailAvailable(true);
-          alert(response.data.message);
-        } else {
-          setIsEmailAvailable(false);
-          alert(response.data.message);
-        }
+        setIsEmailAvailable(true);
+        alert(response.data.message);
+      } else {
+        alert('이미 존재하는 아이디입니다.');
+        setIsEmailAvailable(false);
       }
     } catch (error) {
       console.error(error);
@@ -112,6 +110,10 @@ export default function Register() {
   };
 
   const handleEmailVerification = async () => {
+    if (!isEmailAvailable) {
+      alert('이메일 중복 확인을 먼저 해주세요.');
+      return;
+    }
     try {
       const response = await axios.post(`${API}/user/sendCode`, {
         email: email,

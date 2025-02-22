@@ -26,10 +26,12 @@ export default function Index() {
     // 전체 상품 조회
     try {
       const res = await axios.get(`${API}/item/item`, {
-        cateogryId: category !== 0 ? category : undefined,
-        regionId: location !== 0 ? location : undefined,
-        status: available ? 'available' : undefined,
-        sortBy: sortOption,
+        params: {
+          categoryId: category !== 0 ? category : undefined,
+          regionId: location !== 0 ? location : undefined,
+          status: available ? 'available' : undefined,
+          sortBy: sortOption,
+        },
       });
 
       if (res.data.success) {
@@ -55,7 +57,7 @@ export default function Index() {
     // console.log('product:', product);
 
     return (
-      (!available || product.itmeStatus === 'available') &&
+      (!available || product.itemStatus === 'available') &&
       (location === 0 || Number(product.regionId) === Number(location)) &&
       (category === 0 || Number(product.categoryId) === Number(category))
     );
@@ -91,7 +93,7 @@ export default function Index() {
         {loading ? (
           <p>Loading...</p>
         ) : error ? (
-          { error }
+          <p>{error}</p>
         ) : sortedProducts.length > 0 ? (
           sortedProducts.map((product) => (
             <Link

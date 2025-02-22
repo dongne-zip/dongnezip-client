@@ -5,7 +5,6 @@ import {
   setItemStatus,
   setPrice,
   setDetail,
-  validateForm,
   resetForm,
 } from '../../store/modules/saleReducer';
 import { useRef, useState } from 'react';
@@ -14,13 +13,16 @@ import Map from '../../components/sales/Map';
 import * as S from '../../styles/mixins';
 import styled from 'styled-components';
 
+const API = process.env.REACT_APP_API_SERVER;
+
 export default function SaleRegister() {
   const dispatch = useDispatch();
-  const { categoryId, title, itemStatus, price, detail, errors } = useSelector(
-    (state) => state.sale,
+  const { categoryId, title, itemStatus, price, detail } = useSelector(
+    (state) => state.sale
   );
   const storedMarkers = useSelector((state) => state.map.markers);
 
+  const [localErrors, setLocalErrors] = useState({});
   const [selectedFiles, setSelectedFiles] = useState([]);
   const titleRef = useRef(null);
   const priceRef = useRef(null);
@@ -38,7 +40,7 @@ export default function SaleRegister() {
     dispatch(setPrice(numericValue));
   };
 
-  // Enter 키 입력 시 다음 입력란으로 이동
+  // Enter 키 입력 시 다음
   const handleKeyPress = (e, nextRef) => {
     if (e.key === 'Enter' && nextRef) {
       e.preventDefault();
@@ -59,11 +61,23 @@ export default function SaleRegister() {
     setSelectedFiles([...selectedFiles, ...files]);
   };
 
+  // 로컬에서 폼 검증 함수
+  const validateForm = () => {
+    const errors = {};
+    if (!title.trim()) errors.title = '상품명을 입력해주세요';
+    if (!price) errors.price = '가격을 입력해주세요';
+    if (!detail.trim()) errors.detail = '내용을 입력해주세요';
+    return errors;
+  };
+
   // 상품 등록
   const handleSubmit = async (e) => {
     e.preventDefault();
-    dispatch(validateForm());
 
+    const errors = validateForm();
+    setLocalErrors(errors);
+
+    // 에러 처리
     if (Object.keys(errors).length > 0) return;
 
     if (storedMarkers.length === 0) {
@@ -79,20 +93,21 @@ export default function SaleRegister() {
     formData.append('categoryId', categoryId);
     formData.append('title', title);
     formData.append('itemStatus', itemStatus);
-    formData.append('price', price.replace(/,/g, '')); // 콤마 제거 후 전송
+    formData.append('price', price.replace(/,/g, ''));
     formData.append('detail', detail);
     formData.append('latitude', storedMarkers[0].lat);
     formData.append('longitude', storedMarkers[0].lng);
     formData.append('locationInfo', storedMarkers[0].info);
 
     try {
-      const response = await axios.post('/item/additem', formData, {
+      const response = await axios.post(`${API}/item/additem`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       if (response.data.success) {
         alert('등록이 완료되었습니다!');
         dispatch(resetForm());
         setSelectedFiles([]);
+        setLocalErrors({});
       } else {
         alert('등록 실패: ' + response.data.message);
       }
@@ -113,17 +128,14 @@ export default function SaleRegister() {
               value={categoryId}
               onChange={(e) => dispatch(setCategoryId(e.target.value))}
             >
-              <option value="electronics">전자제품</option>
-              <option value="clothes">남성/여성의류</option>
-              <option value="digitals">디지털기기</option>
-              <option value="accesssories">남성/여성잡화</option>
-              <option value="furniture">가구/인테리어</option>
-              <option value="livings">생활/주방</option>
-              <option value="beauties">뷰티/미용</option>
-              <option value="games">게임/취미</option>
-              <option value="books">도서/문구</option>
-              <option value="children">유아용</option>
-              <option value="others">기타</option>
+              <option value="1">의류/미용</option>
+              <option value="2">생활/주방</option>
+              <option value="3">디지털</option>
+              <option value="4">도서</option>
+              <option value="5">취미</option>
+              <option value="6">식품</option>
+              <option value="7">삽니다</option>
+              <option value="8">나눔</option>
             </select>
           </Category>
           <form onSubmit={handleSubmit}>
@@ -134,43 +146,45 @@ export default function SaleRegister() {
               ref={titleRef}
               placeholder="상품명을 입력해주세요"
               onChange={(e) => dispatch(setTitle(e.target.value))}
-              onKeyPress={(e) => handleKeyPress(e, priceRef)}
+              onKeyDown={(e) => handleKeyPress(e, priceRef)}
             />
-            <div>
+            {localErrors.title && <ErrorText>{localErrors.title}</ErrorText>}
+            <Section>
               <H3>상품 상태</H3>
               {['새상품', '최상', '상', '중', '하'].map((status) => (
-                <button
+                <StatusButton
                   type="button"
                   key={status}
                   onClick={() => dispatch(setItemStatus(status))}
                 >
                   {status}
-                </button>
+                </StatusButton>
               ))}
-            </div>
-            <div>
+            </Section>
+            <Section>
               <H3>가격</H3>
               <Input
                 type="text"
                 value={price}
                 ref={priceRef}
                 onChange={handlePriceChange}
-                onKeyPress={(e) => handleKeyPress(e, detailRef)}
+                onKeyDown={(e) => handleKeyPress(e, detailRef)}
               />
               원
-            </div>
-            <div>
+              {localErrors.price && <ErrorText>{localErrors.price}</ErrorText>}
+            </Section>
+            <Section>
               <H3>상품 설명</H3>
               <Textarea
                 value={detail}
                 ref={detailRef}
                 onChange={(e) => dispatch(setDetail(e.target.value))}
               ></Textarea>
-              {errors.detail && (
-                <span style={{ color: 'red' }}>{errors.detail}</span>
+              {localErrors.detail && (
+                <ErrorText>{localErrors.detail}</ErrorText>
               )}
-            </div>
-            <div>
+            </Section>
+            <Section>
               <H3>사진 업로드 (최대 5개)</H3>
               <Input
                 type="file"
@@ -187,12 +201,12 @@ export default function SaleRegister() {
                   />
                 ))}
               </ImagePreviewContainer>
-            </div>
-            <div>
+            </Section>
+            <Section>
               <H3>거래 희망 장소📍</H3>
               <Map />
-            </div>
-            <button type="submit">등록하기</button>
+            </Section>
+            <SubmitButton type="submit">등록하기</SubmitButton>
           </form>
         </RegisterContainer>
       </CenteredContainer>
@@ -200,7 +214,8 @@ export default function SaleRegister() {
   );
 }
 
-//------------------------------------------✅ 스타일 적용------------------------------------------
+//----------------------------------- Styled Components -----------------------------------
+
 const H1 = styled.h1`
   font-size: 38px;
   font-weight: bold;
@@ -215,6 +230,11 @@ const H1 = styled.h1`
     background-color: #d9d9d9;
     margin-top: 10px;
   }
+
+  @media (max-width: 767px) {
+    font-size: 28px;
+    margin-bottom: 16px;
+  }
 `;
 
 const CenteredContainer = styled.div`
@@ -222,16 +242,25 @@ const CenteredContainer = styled.div`
   justify-content: center;
   align-items: center;
   width: 100%;
+
+  @media (max-width: 767px) {
+    padding: 0 16px;
+  }
 `;
 
 const RegisterContainer = styled.div`
   width: 900px;
-  height: 1200px;
   background: white;
   border-radius: 20px;
   padding: 20px;
   box-shadow: 0px 4px 10px #00000019;
   margin: auto;
+
+  @media (max-width: 767px) {
+    width: 100%;
+    padding: 16px;
+    border-radius: 16px;
+  }
 `;
 
 const Category = styled.div`
@@ -250,8 +279,13 @@ const Category = styled.div`
     cursor: pointer;
 
     &:focus {
-      border-color: #007bff;
+      border-color: #6663ff;
       outline: none;
+    }
+
+    @media (max-width: 767px) {
+      font-size: 14px;
+      padding: 6px 10px;
     }
   }
 `;
@@ -261,6 +295,11 @@ const H3 = styled.h3`
   font-weight: 600;
   color: #333;
   margin-bottom: 10px;
+
+  @media (max-width: 767px) {
+    font-size: 16px;
+    margin-bottom: 8px;
+  }
 `;
 
 const Input = styled.input`
@@ -270,7 +309,12 @@ const Input = styled.input`
   font-size: 16px;
   border: 1px solid #ccc;
   border-radius: 8px;
+
+  @media (max-width: 767px) {
+    width: 100%;
+  }
 `;
+
 const Textarea = styled.textarea`
   width: 700px;
   height: 250px;
@@ -279,6 +323,10 @@ const Textarea = styled.textarea`
   border: 1px solid #ccc;
   border-radius: 8px;
   resize: none;
+
+  @media (max-width: 767px) {
+    width: 100%;
+  }
 `;
 
 const ImagePreviewContainer = styled.div`
@@ -293,4 +341,59 @@ const ImagePreview = styled.img`
   height: 170px;
   border-radius: 5px;
   object-fit: cover;
+
+  @media (max-width: 767px) {
+    width: 100px;
+    height: 100px;
+  }
+`;
+
+const Section = styled.div`
+  margin-bottom: 20px;
+`;
+
+const ErrorText = styled.span`
+  color: red;
+  font-size: 14px;
+`;
+
+const StatusButton = styled.button`
+  min-height: 44px;
+  padding: 10px 20px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  margin-right: 10px;
+
+  &:last-child {
+    margin-right: 0;
+  }
+
+  @media (max-width: 767px) {
+    font-size: 14px;
+    padding: 8px 16px;
+  }
+`;
+
+const SubmitButton = styled.button`
+  min-height: 44px;
+  width: 100%;
+  background-color: #5451ff;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 18px;
+  margin-top: 20px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #6663ff;
+  }
+
+  @media (max-width: 767px) {
+    font-size: 16px;
+    padding: 12px 0;
+  }
 `;

@@ -6,13 +6,13 @@ import EditProfile from './pages/mypage/EditProfile';
 import Header from './components/common/Header';
 import Home from './pages/Index';
 import Purchase from './pages/purchase/Index';
-import Sales from './pages/sales/Index';
 import NotFound from './pages/NotFound';
 import { GlobalStyle } from './styles/GlobalStyle';
 import { Provider } from 'react-redux';
 import store from './store/index';
 import SaleRegister from './pages/sales/SaleRegister';
 import FindPw from './pages/auth/FindPw';
+import SellerSales from './pages/sales/SellerSales';
 function App() {
   return (
     <>
@@ -24,7 +24,7 @@ function App() {
           <Route path="/purchase" element={<Purchase />} />
           {/* 판매페이지 관련 */}
           <Route path="/sales" element={<SaleRegister />} />
-          <Route path="/additem" element={<Sales />} />
+          <Route path="/item" element={<SellerSales />} />
 
           {/* 마이페이지 관련 */}
           <Route path="/login" element={<Login />}></Route>

@@ -32,7 +32,7 @@ const Map = () => {
 
       // 기존 마커 불러오기
       storedMarkers.forEach(({ lat, lng, info }) =>
-        addMarker(newMap, lat, lng, info),
+        addMarker(newMap, lat, lng, info)
       );
     });
   };

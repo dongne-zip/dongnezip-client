@@ -1,16 +1,36 @@
 import { Link } from 'react-router-dom';
 import * as S from '../../styles/HeaderStyle';
 import { useActiveNav } from '../../hooks/common/useActiveNav';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
 
 const s3 = process.env.REACT_APP_S3;
 
 export default function Header() {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  // const [openDropDown, setOpenDropDown] = useState(null); //아코디언 메뉴
+  const [hoveredMenu, setHoveredMenu] = useState(null);
 
   const toggleMobileNav = () => {
     setIsMobileNavOpen((prev) => !prev);
   };
+
+  // const toggleDropdown = (menu) => {
+  //   setOpenDropdown((prev) => (prev === menu ? null : menu));
+  // };
+
+  // 화면 크기가 767px 이상이면 자동으로 모바일 네비 닫기
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 767) {
+        setIsMobileNavOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   return (
     <S.Header>
@@ -23,38 +43,23 @@ export default function Header() {
 
       {/* PC Nav메뉴 */}
       <S.NavBar>
-        <S.NavMenu to="/" $isActive={useActiveNav('/')}>
-          홈
-        </S.NavMenu>
-
-        <S.NavMenu to="/purchase" $isActive={useActiveNav('/purchase')}>
-          구매
-        </S.NavMenu>
-
-        <S.NavMenu to="/sales" $isActive={useActiveNav('/sales')}>
-          판매
-        </S.NavMenu>
+        {['/', '/purchase', '/sales'].map((path, index) => (
+          <S.NavMenu
+            key={index}
+            to={path}
+            $isActive={useActiveNav(path)}
+            $hoveredMenu={hoveredMenu}
+            onMouseEnter={() => setHoveredMenu(path)}
+            onMouseLeave={() => setHoveredMenu(null)}
+          >
+            {path === '/'
+              ? '홈'
+              : path === '/purchase'
+                ? '중고거래'
+                : '판매등록'}
+          </S.NavMenu>
+        ))}
       </S.NavBar>
-
-      {/* 모바일 검색 아이콘 */}
-
-      {/* 모바일 메뉴 아이콘 */}
-      <S.MobileIcon onClick={toggleMobileNav}>
-        <img src={`${s3}/icons/icon-mobile-menu.png`} alt="mobile-menu" />
-      </S.MobileIcon>
-
-      {/* 모바일 내비게이션 메뉴 */}
-      <S.MobileNav $isOpen={isMobileNavOpen}>
-        <S.MobileNavItem to="/" onClick={toggleMobileNav}>
-          홈
-        </S.MobileNavItem>
-        <S.MobileNavItem to="/purchase" onClick={toggleMobileNav}>
-          구매
-        </S.MobileNavItem>
-        <S.MobileNavItem to="/sales" onClick={toggleMobileNav}>
-          판매
-        </S.MobileNavItem>
-      </S.MobileNav>
 
       {/* 유틸 아이콘 & 로그인 버튼 (PC에서만 표시) */}
       <S.UtilContainer>
@@ -69,6 +74,20 @@ export default function Header() {
         </Link>
       </S.UtilContainer>
 
+      {/* ------------------------ 모바일 ------------------------ */}
+
+      <S.MobileUtilContainer>
+        {/* 모바일 검색 아이콘 (FontAwesome) */}
+        <S.MobileIcon>
+          <FontAwesomeIcon icon={faMagnifyingGlass} />
+        </S.MobileIcon>
+
+        {/* 모바일 메뉴 아이콘 (Material Icon) */}
+        <S.MobileIcon className="hamburger" onClick={toggleMobileNav}>
+          <span className="material-symbols-outlined">lunch_dining</span>
+        </S.MobileIcon>
+      </S.MobileUtilContainer>
+
       {/* 배경 오버레이 */}
       <S.Backdrop $isOpen={isMobileNavOpen} onClick={toggleMobileNav} />
 
@@ -77,15 +96,41 @@ export default function Header() {
         <S.CloseButton onClick={toggleMobileNav}>
           <img src={`${s3}/icons/icon-close.png`} alt="icon-close" />
         </S.CloseButton>
-        <S.MobileNavItem to="/" onClick={toggleMobileNav}>
-          홈
-        </S.MobileNavItem>
-        <S.MobileNavItem to="/purchase" onClick={toggleMobileNav}>
-          구매
-        </S.MobileNavItem>
-        <S.MobileNavItem to="/sales" onClick={toggleMobileNav}>
-          판매
-        </S.MobileNavItem>
+
+        {/* 메뉴 리스트(상단) */}
+        <S.MobileNavItems>
+          <S.MobileNavItem to="/" onClick={toggleMobileNav}>
+            홈
+          </S.MobileNavItem>
+          <S.MobileNavItem to="/purchase" onClick={toggleMobileNav}>
+            중고거래
+          </S.MobileNavItem>
+          <S.MobileNavItem to="/sales" onClick={toggleMobileNav}>
+            판매등록
+          </S.MobileNavItem>
+
+          <S.MobileNavExternal>
+            <a
+              href="https://github.com/dongne-zip"
+              target="_blank"
+              rel="noreferrer"
+            >
+              만든 사람들
+            </a>
+            <span className="material-symbols-outlined">arrow_outward</span>
+          </S.MobileNavExternal>
+        </S.MobileNavItems>
+
+        {/* 로그인, 회원가입 버튼 (하단 고정) */}
+        <S.AuthButtonWrapper>
+          <S.LoginButton onClick={toggleMobileNav}>
+            <Link to={'/login'}>로그인</Link>
+          </S.LoginButton>
+
+          <S.SignUpButton onClick={toggleMobileNav}>
+            <Link to={'/join'}>회원가입</Link>
+          </S.SignUpButton>
+        </S.AuthButtonWrapper>
       </S.MobileNav>
     </S.Header>
   );

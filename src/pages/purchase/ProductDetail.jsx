@@ -1,20 +1,25 @@
 import * as S from '../../styles/mixins';
 import { productList } from '../../data/dummyProduct';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { styled } from 'styled-components';
-// import { io } from 'socket.io-client';
+import { useDispatch } from 'react-redux';
+import { chat } from '../../store/modules/chatReducer';
+import axios from 'axios';
 // import { useEffect, useState } from 'react';
-// import axios from 'axios';
+import { jwtDecode } from 'jwt-decode';
+import { useEffect, useState } from 'react';
+// import { io } from 'socket.io-client';
+
 // import { useEffect } from 'react';
-// import axios from 'axios';
 
 // const API = process.env.REACT_APP_API_SERVER || 'http://localhost:5000';
 
 export default function ProductDetail() {
   const { id } = useParams();
-
+  const dispatch = useDispatch();
   const product = productList.find((item) => item.id === Number(id));
-
+  const [userId, setUserId] = useState(null);
+  const navigate = useNavigate();
   // const [product, setProduct] = useState(null);
   // const [loading, setLoading] = useState(true);
   // const [error, setError] = useState(null);
@@ -42,6 +47,38 @@ export default function ProductDetail() {
     );
   }
 
+  useEffect(() => {
+    async function fetchUserToken(loginData) {
+      try {
+        const response = await axios.post(
+          'https://localhost:8080/api-server/user/login/local',
+          loginData,
+          {
+            withCredentials: true,
+          },
+        );
+        const token = response.data.token;
+        const decodeToken = jwtDecode(token);
+        setUserId(decodeToken.userId);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    fetchUserToken();
+  }, []);
+
+  // chatRoom 데이터 전달
+  const handleChatData = () => {
+    const chatPayload = {
+      itemId: product.id,
+      chatHost: product.userId,
+      chatGuest: userId,
+    };
+
+    dispatch(chat(chatPayload));
+    navigate('../Chat');
+  };
+
   return (
     <S.MainLayout>
       <h1>{product.title} 상세 페이지</h1>
@@ -59,7 +96,7 @@ export default function ProductDetail() {
         <div>상품 상태 : {}</div>
       </div>
       <div>상품설명{}</div>
-      <button>채팅하기</button>
+      <button onClick={handleChatData}>채팅하기</button>
       <button>찜하기</button>
       <div>거래상태{}</div>
     </S.MainLayout>

@@ -10,6 +10,7 @@ import ProductDetail from './pages/purchase/ProductDetail';
 import Sales from './pages/sales/Index';
 import NotFound from './pages/NotFound';
 import { GlobalStyle } from './styles/GlobalStyle';
+import Chat from './pages/Chat';
 
 function App() {
   return (
@@ -34,7 +35,7 @@ function App() {
         <Route path="/join" element={<Register />}></Route>
         <Route path="/myPage" element={<Index />}></Route>
         <Route path="/changeInfo" element={<EditProfile />}></Route>
-
+        <Route path="/chat" element={<Chat />}></Route>
         <Route path="*" element={<NotFound />} />
       </Routes>
     </>

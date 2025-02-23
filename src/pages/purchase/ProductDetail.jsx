@@ -1,42 +1,50 @@
-import * as S from '../../styles/mixins';
-import { productList } from '../../data/dummyProduct';
 import { useParams } from 'react-router-dom';
 import { styled } from 'styled-components';
-import MiniMap from '../../components/purchase/MiniMap';
-
+import * as S from '../../styles/mixins';
+import { useEffect, useState } from 'react';
+import axios from 'axios';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 // import { io } from 'socket.io-client';
-// import { useEffect, useState } from 'react';
-// import axios from 'axios';
-// import { useEffect } from 'react';
-// import axios from 'axios';
+// import MiniMap from '../../components/purchase/MiniMap';
 
-// const API = process.env.REACT_APP_API_SERVER || 'http://localhost:5000';
+const s3 = process.env.REACT_APP_S3;
+const API = process.env.REACT_APP_API_SERVER;
 
 export default function ProductDetail() {
   const { id } = useParams();
 
-  const product = productList.find((item) => item.id === Number(id));
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // const [product, setProduct] = useState(null);
-  // const [loading, setLoading] = useState(true);
-  // const [error, setError] = useState(null);
+  useEffect(() => {
+    const fetchProductDetail = async () => {
+      try {
+        const response = await axios.get(`${API}/item/${id}`);
+        setProduct(response.data.data);
+      } catch (err) {
+        setError('상품 정보를 불러오는 중 오류가 발생했습니다.');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // useEffect(() => {
-  //   const fetchProductDetail = async () => {
-  //     try {
-  //       const response = await axios.get(`${API}/item/item/${id}`);
-  //       setProduct(response.data.data);
-  //     } catch (err) {
-  //       setError('상품 정보를 불러오는 중 오류가 발생했습니다.');
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
+    fetchProductDetail();
+  }, [id]);
 
-  //   fetchProductDetail();
-  // }, [id]);
+  if (loading) {
+    return (
+      <S.MainLayout>
+        <DotLottieReact
+          src="https://lottie.host/31cbdf7f-72b9-4a9c-ac6d-c8e70c89cf34/eJQATUqvmn.lottie"
+          loop
+          autoplay
+        />
+      </S.MainLayout>
+    );
+  }
 
-  if (!product) {
+  if (error || !product) {
     return (
       <S.MainLayout>
         <h1>상품을 찾을 수 없습니다 🥲</h1>
@@ -46,28 +54,70 @@ export default function ProductDetail() {
 
   return (
     <S.MainLayout>
-      <h1>{product.title} 상세 페이지</h1>
-      <div>
-        <ItemImgWrapper>
-          <img src={product.img} alt={product.title} />
-        </ItemImgWrapper>
-        <div>판매자 프로필 사진</div>
-        <div>판매자명</div>
-        <div>도봉구</div>
-      </div>
-      <div>
-        <div>상품명</div>
-        <div>가격</div>
-        <div>상품 상태 : {}</div>
-      </div>
-      <div>상품설명{}</div>
-      <button>채팅하기</button>
-      <button>찜하기</button>
-      <div>거래상태{}</div>
-      <MiniMap />
+      <Breadcrumb>
+        구매 &gt; {product.Category.category} &gt; {product.title}
+      </Breadcrumb>
+
+      <Container>
+        <ProductImgSection>
+          <ItemImgWrapper>
+            <img
+              src={product.imgUrls || `${s3}/images/dummy/product-img.png`}
+              alt={product.title}
+            />
+          </ItemImgWrapper>
+          <SellerInfoWrapper>
+            <SellerProfile />
+            <SellerText>
+              <SellerName>판매자 {product.userId}</SellerName>
+              <SellerLocation>{product.Region.district}</SellerLocation>
+            </SellerText>
+          </SellerInfoWrapper>
+        </ProductImgSection>
+        {/* 상품 상세 정보 섹션 */}
+        <ProductInfoSection>
+          <ProductTitle>{product.title}</ProductTitle>
+          <ProductPrice>{product.price.toLocaleString()} 원</ProductPrice>
+          <ProductStatus>상품 상태 : {product.itemStatus}</ProductStatus>
+
+          <ProductDescription>{product.detail}</ProductDescription>
+
+          {/* 버튼 영역 */}
+          <ButtonWrapper>
+            <ChatButton>채팅하기</ChatButton>
+            <FavoriteButton>찜하기</FavoriteButton>
+          </ButtonWrapper>
+
+          {/* 거래 상태 표시 */}
+          <TradeStatus>
+            거래상태 <span>(판매중 / 완료)</span>
+          </TradeStatus>
+        </ProductInfoSection>
+
+        {/* <MiniMap /> */}
+      </Container>
     </S.MainLayout>
   );
 }
+
+/* -------------- 현재 페이지 위치 --------------*/
+const Breadcrumb = styled.div`
+  font-size: 14px;
+  color: gray;
+  margin-bottom: 20px;
+`;
+
+/* -------------- 섹션 포함하는 컨테이너 --------------*/
+
+const Container = styled.div`
+  display: flex;
+  gap: 40px;
+`;
+
+/* -------------- 상품 이미지 및 판매자 정보 섹션 --------------*/
+const ProductImgSection = styled.div`
+  flex: 1;
+`;
 
 const ItemImgWrapper = styled.div`
   display: flex;
@@ -80,3 +130,118 @@ const ItemImgWrapper = styled.div`
   }
 `;
 
+const SellerInfoWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+  margin-left: 20px;
+`;
+
+const SellerProfile = styled.div`
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #ddd;
+  margin-right: 10px;
+`;
+
+const SellerText = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
+const SellerName = styled.div`
+  font-weight: bold;
+  font-size: 1.2rem;
+  margin-bottom: 4px;
+`;
+
+const SellerLocation = styled.div`
+  font-size: 14px;
+  color: gray;
+`;
+
+/* -------------- 상품 상세 정보 섹션 --------------*/
+const ProductInfoSection = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+`;
+
+const ProductTitle = styled.h1`
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 10px;
+`;
+
+const ProductPrice = styled.div`
+  font-size: 22px;
+  font-weight: bold;
+  background: #f5f5f5;
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 10px;
+`;
+
+const ProductStatus = styled.div`
+  font-size: 16px;
+  color: #666;
+  margin-bottom: 20px;
+`;
+
+const ProductDescription = styled.div`
+  font-size: 16px;
+  color: #444;
+  line-height: 1.5;
+  margin-bottom: 20px;
+`;
+
+/* 버튼 */
+const ButtonWrapper = styled.div`
+  display: flex;
+  gap: 10px;
+`;
+
+const ChatButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: #6c63ff;
+  color: white;
+  font-size: 16px;
+  padding: 10px 15px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+
+  &:hover {
+    background: #564fc4;
+  }
+`;
+
+const FavoriteButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: white;
+  border: 1px solid #ddd;
+  font-size: 16px;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+
+  &:hover {
+    background: #f8f8f8;
+  }
+`;
+
+/* 거래 상태 */
+const TradeStatus = styled.div`
+  margin-top: 20px;
+  font-size: 16px;
+  color: gray;
+  span {
+    font-weight: bold;
+  }
+`;

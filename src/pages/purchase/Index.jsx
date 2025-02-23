@@ -26,10 +26,12 @@ export default function Index() {
     // 전체 상품 조회
     try {
       const res = await axios.get(`${API}/item/item`, {
-        cateogryId: category !== 0 ? category : undefined,
-        regionId: location !== 0 ? location : undefined,
-        status: available ? 'available' : undefined,
-        sortBy: sortOption,
+        params: {
+          categoryId: category !== 0 ? category : undefined,
+          regionId: location !== 0 ? location : undefined,
+          status: available ? 'available' : undefined,
+          sortBy: sortOption,
+        },
       });
 
       if (res.data.success) {
@@ -52,12 +54,10 @@ export default function Index() {
 
   // 필터링된 상품 목록
   const filteredProducts = products.filter((product) => {
-    // console.log('product:', product);
-
     return (
-      (!available || product.itmeStatus === 'available') &&
-      (location === 0 || Number(product.regionId) === Number(location)) &&
-      (category === 0 || Number(product.categoryId) === Number(category))
+      (!available || product.buyerId === null) && // 거래 가능 여부: buyerId가 null인지 확인
+      (location === 0 || Number(product.Region.id) === Number(location)) && // 지역 필터
+      (category === 0 || Number(product.Category.id) === Number(category)) // 카테고리 필터
     );
   });
 
@@ -66,7 +66,7 @@ export default function Index() {
     if (sortOption === 'latest') {
       return b.id - a.id;
     } else if (sortOption === 'popular') {
-      return b.likes - a.likes; // 좋아요 개수 기준 정렬
+      return b.favCount - a.favCount; // 좋아요 개수 기준 정렬
     }
     return 0;
   });
@@ -91,7 +91,7 @@ export default function Index() {
         {loading ? (
           <p>Loading...</p>
         ) : error ? (
-          { error }
+          <p>{error}</p>
         ) : sortedProducts.length > 0 ? (
           sortedProducts.map((product) => (
             <Link

@@ -8,6 +8,7 @@ export const GlobalStyle = createGlobalStyle`
 
   :root {
       --color-primary: #3452fe ;
+      --color-primary-dark:rgb(38, 61, 192) ;
       --color-primary-light: #DCDBFF;
 
       --color-text: var(--color-black);
@@ -16,6 +17,7 @@ export const GlobalStyle = createGlobalStyle`
 
       /* colors */
       --color-black: #232629;
+      --color-gray: #979797;
       --color-lightgray: #bfbfbf;
       --color-white: #ffffff;
       --color-purpleblue: #6663FF;

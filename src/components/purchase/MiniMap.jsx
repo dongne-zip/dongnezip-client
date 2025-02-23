@@ -1,85 +1,70 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
+import axios from 'axios';
 
-const MiniMap = ({ markers = [] }) => {
-  // 기본값을 빈 배열로 설정
-  const [selectedMarker, setSelectedMarker] = useState(null);
+const MiniMap = () => {
+  const [markers, setMarkers] = useState([]);
+  const [selectedInfo, setSelectedInfo] = useState(null);
 
   useEffect(() => {
-    if (!window.kakao || !window.kakao.maps || markers.length === 0) return;
+    const fetchMarkers = async () => {
+      try {
+        const response = await axios.get('/api/map/get-markers');
+        if (response.data.success) {
+          setMarkers(response.data.markers);
+        }
+      } catch (error) {
+        console.error('마커 데이터를 가져오는 중 오류 발생:', error);
+      }
+    };
 
-    window.kakao.maps.load(() => {
-      const container = document.getElementById('mini-map');
-      if (!container) return;
+    fetchMarkers();
 
-      const options = {
-        center: new window.kakao.maps.LatLng(markers[0].lat, markers[0].lng),
-        level: 4,
-      };
+    const script = document.createElement('script');
+    script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=7cf2cd1efa95313a520efbf5c739fb2e&libraries=services`;
+    script.async = true;
+    script.onload = () => {
+      window.kakao.maps.load(() => {
+        const mapContainer = document.getElementById('miniMap');
+        const mapOption = {
+          center: new window.kakao.maps.LatLng(37.5665, 126.978),
+          level: 3,
+        };
+        const map = new window.kakao.maps.Map(mapContainer, mapOption);
 
-      const miniMap = new window.kakao.maps.Map(container, options);
+        markers.forEach(({ lat, lng, info }) => {
+          const marker = new window.kakao.maps.Marker({
+            position: new window.kakao.maps.LatLng(lat, lng),
+            map,
+          });
 
-      // 마커 추가
-      markers.forEach((marker) => {
-        const kakaoMarker = new window.kakao.maps.Marker({
-          position: new window.kakao.maps.LatLng(marker.lat, marker.lng),
-          map: miniMap,
-        });
+          const infowindow = new window.kakao.maps.InfoWindow({
+            content: `<div style='padding:5px;'>${info}</div>`,
+          });
 
-        // 마커 클릭 시 정보 표시
-        const infowindow = new window.kakao.maps.InfoWindow({
-          content: `<div style="padding:5px;">${marker.name}</div>`, // 장소명을 정보창에 표시
-        });
-
-        window.kakao.maps.event.addListener(kakaoMarker, 'click', () => {
-          infowindow.open(miniMap, kakaoMarker);
-          setSelectedMarker(marker); // 선택된 마커 정보 업데이트
+          window.kakao.maps.event.addListener(marker, 'click', () => {
+            infowindow.open(map, marker);
+            setSelectedInfo(info);
+          });
         });
       });
-
-      // 지도 범위 자동 조정
-      if (markers.length > 1) {
-        const bounds = new window.kakao.maps.LatLngBounds();
-        markers.forEach((marker) => {
-          bounds.extend(new window.kakao.maps.LatLng(marker.lat, marker.lng));
-        });
-        miniMap.setBounds(bounds);
-      }
-    });
+    };
+    document.head.appendChild(script);
   }, [markers]);
 
   return (
     <div>
-      <div
-        id="mini-map"
-        style={{
-          width: '100%',
-          height: '250px',
-          borderRadius: '10px',
-          cursor: 'pointer',
-        }}
-      ></div>
-
-      {/* 선택한 마커 정보 표시 */}
-      {selectedMarker && (
+      <div id="miniMap" style={{ width: '100%', height: '300px' }}></div>
+      {selectedInfo && (
         <div
           style={{
             marginTop: '10px',
             padding: '10px',
             border: '1px solid #ddd',
-            borderRadius: '10px',
-            background: '#f9f9f9',
+            borderRadius: '5px',
           }}
         >
-          <h3>📍 선택한 마커 정보</h3>
-          <p>
-            <strong>장소명:</strong> {selectedMarker.name}
-          </p>
-          <p>
-            <strong>위도:</strong> {selectedMarker.lat.toFixed(5)}
-          </p>
-          <p>
-            <strong>경도:</strong> {selectedMarker.lng.toFixed(5)}
-          </p>
+          <strong>주소 상세 정보:</strong> {selectedInfo}
         </div>
       )}
     </div>

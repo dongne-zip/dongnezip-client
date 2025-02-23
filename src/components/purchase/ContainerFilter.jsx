@@ -1,6 +1,6 @@
 // import * as S from '../../styles/mixins';
-// import { SEOUL_DISTRICTS, CATEGORY_LIST } from '../../data/constant';
-import { categoryId, seoulDistricts } from '../../data/dummyProduct';
+import { SEOUL_DISTRICTS, CATEGORY_LIST } from '../../data/constant';
+// import { categoryId, seoulDistricts } from '../../data/dummyProduct';
 
 export default function ContainerFilter({
   available,
@@ -29,7 +29,7 @@ export default function ContainerFilter({
       <section>
         <h4>위치</h4>
         <div>서울특별시</div>
-        {seoulDistricts.map(({ id, name }) => (
+        {SEOUL_DISTRICTS.map(({ id, name }) => (
           <label key={id}>
             <input
               type="radio"
@@ -45,7 +45,7 @@ export default function ContainerFilter({
 
       <section>
         <h4>카테고리</h4>
-        {categoryId.map(({ id, name }) => (
+        {CATEGORY_LIST.map(({ id, name }) => (
           <label key={id}>
             <input
               type="radio"

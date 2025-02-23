@@ -2,12 +2,12 @@ import { styled } from 'styled-components';
 import { Link } from 'react-router-dom';
 import ContainerFilter from '../../components/purchase/ContainerFilter';
 import ProductCard from '../../components/purchase/ProductCard';
-import { productList } from '../../data/dummyProduct';
+// import { productList } from '../../data/dummyProduct';
 import * as S from '../../styles/mixins';
-import { useState } from 'react';
-// import axios from 'axios';
+import { useEffect, useState } from 'react';
+import axios from 'axios';
 
-// const API = process.env.REACT_APP_API_SERVER || 'http://localhost:5000';
+const API = process.env.REACT_APP_API_SERVER;
 
 export default function Index() {
   // ----------- 필터링 상태 -----------
@@ -15,29 +15,49 @@ export default function Index() {
   const [location, setLocation] = useState(0); // 선택된 지역 (서울 구단위)
   const [category, setCategory] = useState(0); // 선택된 상품 카테고리
   const [sortOption, setSortOption] = useState('latest'); // 정렬 옵션(최신순, 인기순;좋아요)
-  // const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // const fetchProducts = async () => {
-  //   try {
-  //     const res = await axios.get(`${API}/item/item`);
-  //     console.log('API 응답 데이터:', res.data.data);
-  //     setProducts(res.data.data);
-  //     // console.log('res.data:', res.data.data);
-  //   } catch (err) {
-  //     console.error('상품 목록 불러오는 중 오류 발생:', err);
-  //   }
-  // };
+  const fetchProducts = async () => {
+    setLoading(true);
+    setError(null);
 
-  // useEffect(() => {
-  //   fetchProducts();
-  // }, []);
+    // 전체 상품 조회
+    try {
+      const res = await axios.get(`${API}/item/item`, {
+        params: {
+          categoryId: category !== 0 ? category : undefined,
+          regionId: location !== 0 ? location : undefined,
+          status: available ? 'available' : undefined,
+          sortBy: sortOption,
+        },
+      });
+
+      if (res.data.success) {
+        // console.log('API 응답 데이터:', res.data.data);
+        setProducts(res.data.data);
+      } else {
+        throw new Error('데이터를 가져오는 데 실패했습니다.');
+      }
+    } catch (err) {
+      console.error('상품 목록 불러오는 중 오류 발생:', err);
+      setError('상품을 불러오는 중 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, [category, location, available, sortOption]);
 
   // 필터링된 상품 목록
-  const filteredProducts = productList.filter((product) => {
+  const filteredProducts = products.filter((product) => {
     return (
-      (!available || product.status === '거래가능') &&
-      (location === 0 || Number(product.regionId) === Number(location)) &&
-      (category === 0 || Number(product.categoryId) === Number(category))
+      (!available || product.buyerId === null) && // 거래 가능 여부: buyerId가 null인지 확인
+      (location === 0 || Number(product.Region.id) === Number(location)) && // 지역 필터
+      (category === 0 || Number(product.Category.id) === Number(category)) // 카테고리 필터
     );
   });
 
@@ -46,7 +66,7 @@ export default function Index() {
     if (sortOption === 'latest') {
       return b.id - a.id;
     } else if (sortOption === 'popular') {
-      return b.likes - a.likes; // 좋아요 개수 기준 정렬
+      return b.favCount - a.favCount; // 좋아요 개수 기준 정렬
     }
     return 0;
   });
@@ -66,16 +86,13 @@ export default function Index() {
       />
 
       {/* ----------- 상품 목록 -----------*/}
-      {/* <ProductListContainer>
-        {productList.map((product) => (
-          <Link key={product.id} to={`/purchase/product-detail/${product.id}`}>
-            <ProductCard product={product} />
-          </Link>
-        ))}
-      </ProductListContainer> */}
 
       <ProductListContainer>
-        {sortedProducts.length > 0 ? (
+        {loading ? (
+          <p>Loading...</p>
+        ) : error ? (
+          <p>{error}</p>
+        ) : sortedProducts.length > 0 ? (
           sortedProducts.map((product) => (
             <Link
               key={product.id}

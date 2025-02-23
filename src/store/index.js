@@ -1,10 +1,17 @@
-import { combineReducers } from '@reduxjs/toolkit';
-import authReducer from './modules/authReducer';
+import { configureStore } from '@reduxjs/toolkit';
+import saleReducer from './modules/saleReducer';
+// import authReducer from './modules/authReducer';
+import { loginReducer } from './modules/loginReducer';
+import mapReducer from './modules/mapReducer';
 import chatReducer from './modules/chatReducer';
 
-const rootReducer = combineReducers({
-  authReducer: authReducer,
-  chatReducer: chatReducer,
+const store = configureStore({
+  reducer: {
+    sale: saleReducer,
+    isLogin: loginReducer,
+    map: mapReducer,
+    chat: chatReducer,
+  },
 });
 
-export default rootReducer;
+export default store;

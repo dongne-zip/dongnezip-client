@@ -10,6 +10,16 @@ export const MainLayout = styled.div`
   padding: 20px;
 `;
 
+export const FlexLayout = styled.div`
+  width: 100%;
+  max-width: 1024px;
+  margin: 0 auto;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
+
 // 상품 카드
 export const ProductCard = styled.div`
   width: 200px;
@@ -22,4 +32,8 @@ export const IconMedium = styled.div`
   width: 24px;
 `;
 
-// 버튼 (L)44px - 주로 모바일 (M) (S)
+// 버튼 (L)44px - 주로 모바일 (M) (S)24
+export const BtnSmall = styled.button`
+  height: 24px;
+  width: 24px;
+`;

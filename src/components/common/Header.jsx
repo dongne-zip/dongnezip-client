@@ -4,6 +4,7 @@ import { useActiveNav } from '../../hooks/common/useActiveNav';
 import { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
+import { useSelector } from 'react-redux';
 
 const s3 = process.env.REACT_APP_S3;
 
@@ -11,6 +12,10 @@ export default function Header() {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   // const [openDropDown, setOpenDropDown] = useState(null); //아코디언 메뉴
   const [hoveredMenu, setHoveredMenu] = useState(null);
+
+  // Redux 로그인 여부 확인
+  const isLoggedIn = useSelector((state) => state.isLogin.isLoggedIn);
+  const userNickname = useSelector((state) => state.isLogin.user?.nickname);
 
   const toggleMobileNav = () => {
     setIsMobileNavOpen((prev) => !prev);
@@ -69,9 +74,19 @@ export default function Header() {
         <S.Icon>
           <span className="material-symbols-outlined">dark_mode</span>
         </S.Icon>
-        <Link to={'/login'}>
-          <S.Button>로그인</S.Button>
-        </Link>
+
+        {/* 로그인 여부에 따라 버튼 변경 */}
+        {isLoggedIn ? (
+          <Link to={'/mypage'}>
+            <S.Button>
+              {userNickname ? `${userNickname}님` : '마이페이지'}
+            </S.Button>
+          </Link>
+        ) : (
+          <Link to={'/login'}>
+            <S.Button>로그인</S.Button>
+          </Link>
+        )}
       </S.UtilContainer>
 
       {/* ------------------------ 모바일 ------------------------ */}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import * as S from '../../styles/mixins';
 import styled from 'styled-components';
@@ -11,7 +11,13 @@ export default function Login() {
   const dispatch = useDispatch();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user) {
+      dispatch(loginUser(user)); // Dispatch the user data to Redux
+      navigate('/myPage'); // Redirect to myPage if already logged in
+    }
+  }, [dispatch, navigate]);
   const handleLogin = async (e) => {
     e.preventDefault();
     if (!email || !password) {
@@ -26,21 +32,15 @@ export default function Login() {
         { email, password },
         { withCredentials: true },
       );
-
-      // 로그인 성공시 토큰 저장 및 페이지 이동
-      // axios.defaults.headers.common['Authorization'] =
-      //   `Bearer ${response.data.access_token}`;
-      // alert('로그인 성공!');
-      // navigate('/myPage');
-      console.log(response);
       if (response.status === 200) {
-        const { user, access_token } = response.data;
+        const { user } = response.data;
         alert('로그인 성공!');
-        localStorage.setItem('user', JSON.stringify(user));
-        localStorage.setItem('access_token', access_token);
+        // localStorage.setItem('user', JSON.stringify(user));
+        // localStorage.setItem('access_token', token);
         dispatch(loginUser(user)); // Dispatch the user data to Redux
         navigate('/myPage');
       }
+      console.log(response);
     } catch (error) {
       alert('이메일 또는 비밀번호가 틀렸습니다.');
     }
@@ -103,6 +103,10 @@ const ExtendedMainLayout = styled(S.MainLayout)`
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding: 20px;
+  @media (max-width: 767px) {
+    padding: 15px;
+  }
 `;
 
 const LoginContainer = styled.div`
@@ -114,19 +118,31 @@ const LoginContainer = styled.div`
   background-color: #fff;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  @media (max-width: 767px) {
+    max-width: 100%;
+    padding: 1rem;
+  }
 `;
+
 const H3 = styled.h2`
   text-align: center;
+  font-size: 24px;
+  @media (max-width: 767px) {
+    font-size: 20px;
+  }
 `;
+
 const LoginForm = styled.form`
   margin: 0 auto;
   padding: 16px;
 `;
+
 const Label = styled.label`
   display: block;
   font-weight: 600;
   margin-bottom: 4px;
 `;
+
 const Input = styled.input`
   width: 100%;
   padding: 10px;
@@ -135,7 +151,11 @@ const Input = styled.input`
     border-color: #5a67d8;
     outline: none;
   }
+  @media (max-width: 767px) {
+    padding: 8px;
+  }
 `;
+
 const Button = styled.button`
   width: 100%;
   padding: 10px;
@@ -149,6 +169,7 @@ const Button = styled.button`
       background-color: #7e7dbe;
     }
   }
+
   &.kakaoLogin {
     background-color: #fee502;
     color: black;
@@ -156,7 +177,11 @@ const Button = styled.button`
       background-color: #ebe6b2;
     }
   }
+  @media (max-width: 767px) {
+    padding: 8px;
+  }
 `;
+
 const Notice = styled.div`
   text-align: center;
   &.registerLink {
@@ -167,5 +192,9 @@ const Notice = styled.div`
 
   .registerLink:hover {
     color: #0b0b0b;
+  }
+
+  @media (max-width: 767px) {
+    font-size: 14px;
   }
 `;

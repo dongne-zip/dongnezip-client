@@ -12,7 +12,9 @@ import { Provider } from 'react-redux';
 import store from './store/index';
 import SaleRegister from './pages/sales/SaleRegister';
 import FindPw from './pages/auth/FindPw';
+import ProductDetail from './pages/purchase/ProductDetail';
 import SellerSales from './pages/sales/SellerSales';
+
 function App() {
   return (
     <>
@@ -21,7 +23,14 @@ function App() {
         <Header />
         <Routes>
           <Route path="/" element={<Home />} />
+
+          {/* 구매페이지 */}
           <Route path="/purchase" element={<Purchase />} />
+          <Route
+            path="/purchase/product-detail/:id"
+            element={<ProductDetail />}
+          />
+
           {/* 판매페이지 관련 */}
           <Route path="/sales" element={<SaleRegister />} />
           <Route path="/item" element={<SellerSales />} />

@@ -1,29 +1,34 @@
 <!doctype html>
-<html lang="en">
+<html lang="ko">
   <head>
     <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="Web site created using create-react-app"
-    />
-    <!-- <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" /> -->
-    <!--
-      manifest.json provides metadata used when your web app is installed on a
-      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
-    -->
-    <!-- <link rel="manifest" href="%PUBLIC_URL%/manifest.json" /> -->
-    <!--
-      Notice the use of %PUBLIC_URL% in the tags above.
-      It will be replaced with the URL of the `public` folder during the build.
-      Only files inside the `public` folder can be referenced from the HTML.
+    <meta name="description" content="내 집에서 가장 가까운 거래, 동네zip" />
+    <meta name="author" content="Team cherry-pick" />
 
-      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
-      work correctly both with client-side routing and a non-root public URL.
-      Learn how to configure a non-root public URL by running `npm run build`.
-    -->
+    <!-- Open Graph 메타 태그 -->
+    <meta property="og:title" content="동네ZIP - 내 집에서 가장 가까운 거래" />
+    <meta
+      property="og:description"
+      content="중고 거래, 무료 나눔, 내가 찾던 그 물건 - 동네ZIP에서 만나보세요!"
+    />
+    <meta property="og:image" content="/assets/logo.png" />
+    <meta property="og:url" content="http://13.124.25.138/" />
+    <meta property="og:type" content="website" />
+
+    <!-- 파비콘 -->
+    <link rel="icon" href="/assets/favicon.png" />
+
+    <!-- Twitter Card (트위터 미리보기) -->
+    <!-- <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="동네ZIP - 내 집에서 가장 가까운 거래" />
+    <meta
+      name="twitter:description"
+      content="중고 거래, 무료 나눔, 내가 찾던 그 물건 - 동네ZIP에서 만나보세요!"
+    />
+    <meta name="twitter:image" content="/assets/logo.png" /> -->
+
     <!-- KakaoMap SDK -->
     <script
       type="text/javascript"
@@ -35,12 +40,11 @@
       href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@latest/dist/web/variable/pretendardvariable.min.css"
     />
     <!-- Material Icon CDN-->
-    <head>
-      <link
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
-        rel="stylesheet"
-      />
-    </head>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+      rel="stylesheet"
+    />
+
     <title>동네ZIP</title>
   </head>
   <body>

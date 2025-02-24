@@ -7,6 +7,7 @@ import axios from 'axios';
 const API = process.env.REACT_APP_API_SERVER;
 
 export default function Register() {
+  axios.defaults.withCredentials = true; // 모든 요청에 쿠키 포함
   const [email, setEmail] = useState('');
   const [isValid, setIsValid] = useState(null);
   const [nickname, setNickname] = useState('');
@@ -183,13 +184,22 @@ export default function Register() {
         <H3>회원가입</H3>
         <RegisterForm className="registerForm" onSubmit={handleSubmit}>
           <Label htmlFor="email">이메일: </Label>
-          <Input
-            type="email"
-            id="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+          <EmailInput>
+            <Input
+              type="email"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
 
+            <VerificationInput
+              type="button"
+              onClick={handleEmailCheck}
+              disabled={!isValid}
+            >
+              중복 확인
+            </VerificationInput>
+          </EmailInput>
           <WarningText>
             {isValid === null
               ? ''
@@ -197,31 +207,34 @@ export default function Register() {
                 ? ''
                 : '[abc@def.com] 이메일 형태로 입력해주세요'}
           </WarningText>
-          <button type="button" onClick={handleEmailCheck} disabled={!isValid}>
-            중복 확인
-          </button>
 
-          <button
+          <VerificationInput
             type="button"
             onClick={handleCodeRequest}
             disabled={!isEmailAvailable}
           >
             인증번호 받기
-          </button>
+          </VerificationInput>
 
           {isCodeReceived && (
             <>
               <Label htmlFor="verificationCode">인증번호:</Label>
-              <Input
-                type="text"
-                id="verificationCode"
-                value={verificationCode}
-                onChange={(e) => setVerificationCode(e.target.value)}
-                placeholder="인증번호를 입력하세요"
-              />
-              <button type="button" onClick={handleCodeVerification}>
-                인증번호 확인
-              </button>
+              <EmailInput>
+                <Input
+                  type="text"
+                  id="verificationCode"
+                  value={verificationCode}
+                  onChange={(e) => setVerificationCode(e.target.value)}
+                  placeholder="인증번호를 입력하세요"
+                />
+                <VerificationInput
+                  type="button"
+                  onClick={handleCodeVerification}
+                >
+                  인증번호 확인
+                </VerificationInput>
+              </EmailInput>
+
               {isCodeValid === false && <p>인증번호가 틀렸습니다.</p>}
             </>
           )}
@@ -232,12 +245,17 @@ export default function Register() {
           <br />
 
           <Label htmlFor="nickname">닉네임: </Label>
-          <Input
-            type="text"
-            id="nickname"
-            value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
-          />
+          <EmailInput>
+            <Input
+              type="text"
+              id="nickname"
+              value={nickname}
+              onChange={(e) => setNickname(e.target.value)}
+            />
+            <VerificationInput type="button" onClick={handleNicknameCheck}>
+              중복확인
+            </VerificationInput>
+          </EmailInput>
           <WarningText>
             {isValidNickname === null
               ? ''
@@ -245,10 +263,6 @@ export default function Register() {
                 ? ''
                 : '한글, 영문, 숫자만 입력 가능, 4~20자리'}
           </WarningText>
-          <button type="button" onClick={handleNicknameCheck}>
-            중복확인
-          </button>
-          <br />
 
           <Label htmlFor="password">비밀번호:</Label>
           <Input
@@ -290,11 +304,14 @@ export default function Register() {
     </ExtendedMainLayout>
   );
 }
-
 const ExtendedMainLayout = styled(S.MainLayout)`
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding: 1rem;
+  @media (max-width: 767px) {
+    padding: 0.5rem;
+  }
 `;
 
 const RegisterContainer = styled.div`
@@ -306,28 +323,46 @@ const RegisterContainer = styled.div`
   background-color: white;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  @media (max-width: 767px) {
+    padding: 1rem;
+    max-width: 100%;
+    box-shadow: none;
+  }
 `;
+
 const H3 = styled.h3`
   text-align: center;
+  @media (max-width: 767px) {
+    font-size: 18px;
+  }
 `;
+
 const RegisterForm = styled.form`
   margin: 0 auto;
   padding: 16px;
+  width: 100%;
 `;
+
 const Label = styled.label`
   display: block;
   font-weight: 600;
   margin-bottom: 4px;
 `;
+
 const Input = styled.input`
-  width: 100%;
+  width: 80%;
   padding: 10px;
   border: 1px solid #ccc;
   &:focus {
     border-color: #5a67d8;
     outline: none;
   }
+  @media (max-width: 767px) {
+    width: 100%;
+    padding: 8px;
+  }
 `;
+
 const Button = styled.button`
   width: 100%;
   padding: 10px;
@@ -339,16 +374,33 @@ const Button = styled.button`
   &:hover {
     background-color: #7e7dbe;
   }
+  &:disabled {
+    background-color: #ccc;
+    color: #888;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+  @media (max-width: 767px) {
+    padding: 8px;
+  }
 `;
+
 const WarningText = styled.p`
   color: #e53e3e;
   font-size: 12px;
   margin-top: 4px;
+  @media (max-width: 767px) {
+    font-size: 10px;
+  }
 `;
 
 const Notice = styled.div`
   text-align: center;
-  &.loginLink {
+  margin-top: 10px;
+  @media (max-width: 767px) {
+    font-size: 14px;
+  }
+  & .loginLink {
     text-decoration: underline;
     color: #007bff;
     transition: color 0.3s ease;
@@ -356,5 +408,37 @@ const Notice = styled.div`
 
   .loginLink:hover {
     color: #0b0b0b;
+  }
+`;
+
+const VerificationInput = styled.button`
+  background-color: white;
+  color: #007bff;
+  border: 1px solid #007bff;
+  padding: 8px 16px;
+  font-size: 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  &:hover {
+    background-color: #007bff;
+    color: white;
+  }
+  &:disabled {
+    background-color: #ccc;
+    color: #888;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+  @media (max-width: 767px) {
+    padding: 6px 12px;
+    font-size: 10px;
+  }
+`;
+
+const EmailInput = styled.form`
+  display: flex;
+  @media (max-width: 767px) {
+    flex-direction: column;
   }
 `;

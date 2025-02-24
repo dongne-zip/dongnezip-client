@@ -24,7 +24,6 @@ function App() {
         <Header />
         <Routes>
           <Route path="/" element={<Home />} />
-
           {/* 구매페이지 */}
           <Route path="/purchase" element={<Purchase />} />
           <Route
@@ -43,7 +42,6 @@ function App() {
           <Route path="/mypage" element={<Index />}></Route>
           <Route path="/changeInfo" element={<EditProfile />}></Route>
           <Route path="/findPw" element={<FindPw />}></Route>
-
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Provider>

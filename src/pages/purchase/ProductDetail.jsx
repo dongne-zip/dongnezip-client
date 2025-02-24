@@ -9,18 +9,23 @@ import { chat, setActiveRoom } from '../../store/modules/chatReducer';
 // import { jwtDecode } from 'jwt-decode';
 // import { io } from 'socket.io-client';
 import MiniMap from '../../components/purchase/MiniMap';
+import { deleteItemDetail } from '../../utils/api';
 
 const s3 = process.env.REACT_APP_S3;
 const API = process.env.REACT_APP_API_SERVER;
 
 export default function ProductDetail() {
+  // redux
+  // const isLoggedIn = useSelector((state) => state.isLogin.isLoggedIn);
+
   const { id } = useParams();
   const dispatch = useDispatch();
-  const [userId, setUserId] = useState(null);
   const navigate = useNavigate();
+  const [userId, setUserId] = useState(null);
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const chatRooms = useSelector((state) => state.chat.chatRooms);
 
   useEffect(() => {
@@ -38,18 +43,33 @@ export default function ProductDetail() {
     fetchProductDetail();
   }, [id]);
 
+  // 로그인된 사용자 정보 가져오기
   useEffect(() => {
     const token = localStorage.getItem('user');
     console.log(token);
     if (token) {
       try {
         const decodeToken = JSON.parse(token);
-        setUserId(decodeToken.id);
+        setUserId(decodeToken.id); //로그인한 사용자의 ID 설정
       } catch (err) {
         console.error(err);
       }
     }
   }, []);
+
+  // 상품 등록한 사용자인지 확인
+  const isOwner = userId === product?.userId;
+
+  // 삭제 요청
+  const handleDeleteProduct = async () => {
+    try {
+      await deleteItemDetail(id);
+      alert('삭제가 완료되었습니다');
+      navigate('/purchase');
+    } catch (error) {
+      console.error('삭제 실패');
+    }
+  };
 
   console.log('userid', userId);
   if (loading) {
@@ -80,14 +100,6 @@ export default function ProductDetail() {
           loop
           autoplay
         />
-      </S.MainLayout>
-    );
-  }
-
-  if (error || !product) {
-    return (
-      <S.MainLayout>
-        <h1>상품을 찾을 수 없습니다 🥲</h1>
       </S.MainLayout>
     );
   }
@@ -164,6 +176,23 @@ export default function ProductDetail() {
         </ProductImgSection>
         {/* 상품 상세 정보 섹션 */}
         <ProductInfoSection>
+          {/* 사용자가 등록한 상품이면 편집 & 삭제 버튼 표시 */}
+          {isOwner && (
+            <div>
+              <button onClick={() => setIsModalOpen(true)}>삭제</button>
+            </div>
+          )}
+
+          {/* 모달창 (삭제 확인) */}
+          {isModalOpen && (
+            <div>
+              <p>정말 삭제하시겠습니까??</p>
+              <button onClick={handleDeleteProduct}>삭제</button>
+              <button onClick={() => setIsModalOpen(false)}>취소</button>
+            </div>
+          )}
+
+          {/* 상품 상세 */}
           <ProductTitle>{product.title}</ProductTitle>
           <ProductPrice>{product.price.toLocaleString()} 원</ProductPrice>
           <ProductStatus>상품 상태 : {product.itemStatus}</ProductStatus>
@@ -184,6 +213,14 @@ export default function ProductDetail() {
 
         <MiniMap />
       </Container>
+
+      {/* 상품 상세 삭제 모달 */}
+      {isModalOpen && (
+        <div>
+          <button onClick={handleDeleteProduct}>삭제</button>
+          <button onClick={() => setIsModalOpen}>취소</button>
+        </div>
+      )}
     </S.MainLayout>
   );
 }

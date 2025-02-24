@@ -1,31 +1,55 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import * as S from '../../styles/HeaderStyle';
 import { useActiveNav } from '../../hooks/common/useActiveNav';
 import { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
-import { useSelector } from 'react-redux';
+import axios from 'axios';
 
 const s3 = process.env.REACT_APP_S3;
 
+axios.defaults.withCredentials = true; // 모든 요청에 쿠키 포함
+
 export default function Header() {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
-  // const [openDropDown, setOpenDropDown] = useState(null); //아코디언 메뉴
   const [hoveredMenu, setHoveredMenu] = useState(null);
+  const [userInfo, setUserInfo] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Redux 로그인 여부 확인
-  const isLoggedIn = useSelector((state) => state.isLogin.isLoggedIn);
-  const userNickname = useSelector((state) => state.isLogin.user?.nickname);
+  const API = process.env.REACT_APP_API_SERVER;
+  const location = useLocation(); // 현재 경로 감지
+
+  // 경로 변경 시마다 사용자 정보를 새로 요청 (로그인 후, 마이페이지 이동 시 업데이트)
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const response = await axios.post(`${API}/user/token`);
+        // 서버에서 반환하는 값이 { result: true, nickname: '사용자이름' }인 경우
+        if (response.data.result) {
+          setUserInfo({ nickname: response.data.nickname });
+          setIsLoggedIn(true);
+        } else {
+          setUserInfo(null);
+          setIsLoggedIn(false);
+        }
+      } catch (error) {
+        console.error('사용자 정보를 불러오지 못했습니다.', error);
+        setUserInfo(null);
+        setIsLoggedIn(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserInfo();
+  }, [API, location]); // location이 바뀔 때마다 재호출
 
   const toggleMobileNav = () => {
     setIsMobileNavOpen((prev) => !prev);
   };
 
-  // const toggleDropdown = (menu) => {
-  //   setOpenDropdown((prev) => (prev === menu ? null : menu));
-  // };
-
-  // 화면 크기가 767px 이상이면 자동으로 모바일 네비 닫기
+  // 화면 크기가 767px 이상이면 모바일 네비를 닫습니다.
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 767) {
@@ -66,7 +90,7 @@ export default function Header() {
         ))}
       </S.NavBar>
 
-      {/* 유틸 아이콘 & 로그인 버튼 (PC에서만 표시) */}
+      {/* 유틸 아이콘 & 로그인 버튼 (PC) */}
       <S.UtilContainer>
         <S.Icon>
           <span className="material-symbols-outlined">notifications</span>
@@ -75,11 +99,11 @@ export default function Header() {
           <span className="material-symbols-outlined">dark_mode</span>
         </S.Icon>
 
-        {/* 로그인 여부에 따라 버튼 변경 */}
-        {isLoggedIn ? (
+        {/* 로딩 상태일 때는 버튼을 숨기거나, 로딩 스피너를 표시 */}
+        {isLoading ? null : isLoggedIn ? (
           <Link to={'/mypage'}>
             <S.Button>
-              {userNickname ? `${userNickname}님` : '마이페이지'}
+              {userInfo?.nickname ? `${userInfo.nickname}님` : '마이페이지'}
             </S.Button>
           </Link>
         ) : (
@@ -90,14 +114,11 @@ export default function Header() {
       </S.UtilContainer>
 
       {/* ------------------------ 모바일 ------------------------ */}
-
       <S.MobileUtilContainer>
-        {/* 모바일 검색 아이콘 (FontAwesome) */}
         <S.MobileIcon>
           <FontAwesomeIcon icon={faMagnifyingGlass} />
         </S.MobileIcon>
 
-        {/* 모바일 메뉴 아이콘 (Material Icon) */}
         <S.MobileIcon className="hamburger" onClick={toggleMobileNav}>
           <span className="material-symbols-outlined">lunch_dining</span>
         </S.MobileIcon>
@@ -138,13 +159,20 @@ export default function Header() {
 
         {/* 로그인, 회원가입 버튼 (하단 고정) */}
         <S.AuthButtonWrapper>
-          <S.LoginButton onClick={toggleMobileNav}>
-            <Link to={'/login'}>로그인</Link>
-          </S.LoginButton>
-
-          <S.SignUpButton onClick={toggleMobileNav}>
-            <Link to={'/join'}>회원가입</Link>
-          </S.SignUpButton>
+          {isLoading ? null : !isLoggedIn ? (
+            <>
+              <S.LoginButton onClick={toggleMobileNav}>
+                <Link to={'/login'}>로그인</Link>
+              </S.LoginButton>
+              <S.SignUpButton onClick={toggleMobileNav}>
+                <Link to={'/join'}>회원가입</Link>
+              </S.SignUpButton>
+            </>
+          ) : (
+            <S.LoginButton onClick={toggleMobileNav}>
+              <Link to={'/mypage'}>마이페이지</Link>
+            </S.LoginButton>
+          )}
         </S.AuthButtonWrapper>
       </S.MobileNav>
     </S.Header>

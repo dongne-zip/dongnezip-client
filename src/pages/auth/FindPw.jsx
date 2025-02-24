@@ -30,11 +30,12 @@ export default function FindPw() {
       alert('모든 정보를 올바르게 입력해주세요.');
       return;
     }
-
+    const token = localStorage.getItem('emailAuthToken');
     try {
       const response = await axios.post(`${API}/user/findPw`, {
-        email,
-        password,
+        code: verificationCode, // 인증 코드
+        token, // 토큰
+        newPw: password, //
       });
       if (response.status === 200) {
         alert('비밀번호 새로 설정 완료');

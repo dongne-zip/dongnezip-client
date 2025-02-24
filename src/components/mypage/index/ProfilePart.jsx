@@ -38,7 +38,7 @@ export default function ProfilePart() {
     // S3로 파일 업로드 하기
     if (profileData) {
       const formData = new FormData();
-      formData.append('profilePic', profileData);
+      formData.append('profileImg', profileData);
 
       try {
         const response = await axios.post(`${API}/user/changeImg`, formData, {
@@ -47,7 +47,7 @@ export default function ProfilePart() {
           },
         });
 
-        setProfileData(response.data.fileUrl); // 업로드 후, 파일 URL을 상태에 저장
+        setProfileData(response.data.profileImg); // 업로드 후, 파일 URL을 상태에 저장
         console.log('파일 업로드 성공: ', response.data.fileUrl);
       } catch (error) {
         console.error('파일 업로드 실패: ', error);
@@ -76,7 +76,7 @@ export default function ProfilePart() {
   return (
     <ProfilePartS>
       <ProfileImg src={profileData?.profileImg} alt="프로필 사진" />
-      <img src={user.profilePath} alt="프로필 사진" />
+
       <input
         type="file"
         accept="image/*"

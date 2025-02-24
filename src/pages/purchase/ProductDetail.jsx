@@ -1,9 +1,12 @@
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { styled } from 'styled-components';
 import * as S from '../../styles/mixins';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+import { useDispatch } from 'react-redux';
+import { chat, setActiveRoom } from '../../store/modules/chatReducer';
+import { jwtDecode } from 'jwt-decode';
 // import { io } from 'socket.io-client';
 // import MiniMap from '../../components/purchase/MiniMap';
 
@@ -13,6 +16,9 @@ const API = process.env.REACT_APP_API_SERVER;
 export default function ProductDetail() {
   const { id } = useParams();
 
+  const dispatch = useDispatch();
+  const [userId, setUserId] = useState(null);
+  const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -31,6 +37,26 @@ export default function ProductDetail() {
 
     fetchProductDetail();
   }, [id]);
+
+  useEffect(() => {
+    async function fetchUserToken(loginData) {
+      try {
+        const response = await axios.post(
+          `${API}/user/login/local`,
+          loginData,
+          {
+            withCredentials: true,
+          },
+        );
+        const token = response.data.token;
+        const decodeToken = jwtDecode(token);
+        setUserId(decodeToken.userId);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    fetchUserToken();
+  }, []);
 
   if (loading) {
     return (
@@ -51,6 +77,41 @@ export default function ProductDetail() {
       </S.MainLayout>
     );
   }
+
+  // chatRoom 데이터 전달, 채팅방 생성
+  const handleChatData = async () => {
+    // 사용자 인증
+    if (!userId) {
+      navigate('/login');
+      return;
+    }
+
+    try {
+      // 채팅방 생성
+      const response = await axios.post(`${API}/chat/chatroom/create`, {
+        itemId: product.id,
+        chatHost: product.userId,
+      });
+
+      const roomId = response.data.roomId;
+
+      // redux에 저장
+      const chatPayload = {
+        roomId,
+        itemId: product.id,
+        chatHost: product.userId,
+        chatGuest: userId,
+      };
+
+      dispatch(chat(chatPayload));
+      dispatch(setActiveRoom(roomId));
+
+      // 채팅방 이동
+      navigate(`/chat/${roomId}`);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   return (
     <S.MainLayout>
@@ -84,7 +145,7 @@ export default function ProductDetail() {
 
           {/* 버튼 영역 */}
           <ButtonWrapper>
-            <ChatButton>채팅하기</ChatButton>
+            <ChatButton onClick={handleChatData}>채팅하기</ChatButton>
             <FavoriteButton>찜하기</FavoriteButton>
           </ButtonWrapper>
 

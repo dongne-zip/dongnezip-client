@@ -99,10 +99,12 @@ export default function SaleRegister() {
     formData.append('longitude', storedMarkers[0].lng);
     formData.append('locationInfo', storedMarkers[0].info);
 
+    console.log(formData);
     try {
       const response = await axios.post(`${API}/item/additem`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
+
       if (response.data.success) {
         alert('등록이 완료되었습니다!');
         dispatch(resetForm());

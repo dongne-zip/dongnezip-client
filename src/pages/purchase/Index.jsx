@@ -1,5 +1,5 @@
 import { styled } from 'styled-components';
-import { Link } from 'react-router-dom';
+// import { Link } from 'react-router-dom';
 import ContainerFilter from '../../components/purchase/ContainerFilter';
 import ProductCard from '../../components/purchase/ProductCard';
 // import { productList } from '../../data/dummyProduct';
@@ -94,12 +94,9 @@ export default function Index() {
           <p>{error}</p>
         ) : sortedProducts.length > 0 ? (
           sortedProducts.map((product) => (
-            <Link
-              key={product.id}
-              to={`/purchase/product-detail/${product.id}`}
-            >
+            <div key={product.id}>
               <ProductCard product={product} />
-            </Link>
+            </div>
           ))
         ) : (
           <p>상품이 없습니다</p>

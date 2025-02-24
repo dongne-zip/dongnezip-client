@@ -18,7 +18,7 @@ const API = process.env.REACT_APP_API_SERVER;
 export default function SaleRegister() {
   const dispatch = useDispatch();
   const { categoryId, title, itemStatus, price, detail } = useSelector(
-    (state) => state.sale
+    (state) => state.sale,
   );
   const storedMarkers = useSelector((state) => state.map.markers);
 
@@ -99,10 +99,12 @@ export default function SaleRegister() {
     formData.append('longitude', storedMarkers[0].lng);
     formData.append('locationInfo', storedMarkers[0].info);
 
+    console.log(formData);
     try {
       const response = await axios.post(`${API}/item/additem`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
+
       if (response.data.success) {
         alert('등록이 완료되었습니다!');
         dispatch(resetForm());

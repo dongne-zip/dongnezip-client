@@ -4,9 +4,9 @@ import * as S from '../../styles/mixins';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { chat, setActiveRoom } from '../../store/modules/chatReducer';
-import { jwtDecode } from 'jwt-decode';
+// import { jwtDecode } from 'jwt-decode';
 // import { io } from 'socket.io-client';
 import MiniMap from '../../components/purchase/MiniMap';
 
@@ -15,13 +15,13 @@ const API = process.env.REACT_APP_API_SERVER;
 
 export default function ProductDetail() {
   const { id } = useParams();
-
   const dispatch = useDispatch();
   const [userId, setUserId] = useState(null);
   const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const chatRooms = useSelector((state) => state.chat.chatRooms);
 
   useEffect(() => {
     const fetchProductDetail = async () => {
@@ -39,24 +39,38 @@ export default function ProductDetail() {
   }, [id]);
 
   useEffect(() => {
-    async function fetchUserToken(loginData) {
+    const token = localStorage.getItem('user');
+    console.log(token);
+    if (token) {
       try {
-        const response = await axios.post(
-          `${API}/user/login/local`,
-          loginData,
-          {
-            withCredentials: true,
-          },
-        );
-        const token = response.data.token;
-        const decodeToken = jwtDecode(token);
-        setUserId(decodeToken.userId);
+        const decodeToken = JSON.parse(token);
+        setUserId(decodeToken.id);
       } catch (err) {
         console.error(err);
       }
     }
-    fetchUserToken();
   }, []);
+
+  console.log('userid', userId);
+  if (loading) {
+    return (
+      <S.MainLayout>
+        <DotLottieReact
+          src="https://lottie.host/31cbdf7f-72b9-4a9c-ac6d-c8e70c89cf34/eJQATUqvmn.lottie"
+          loop
+          autoplay
+        />
+      </S.MainLayout>
+    );
+  }
+
+  if (error || !product) {
+    return (
+      <S.MainLayout>
+        <h1>상품을 찾을 수 없습니다 🥲</h1>
+      </S.MainLayout>
+    );
+  }
 
   if (loading) {
     return (
@@ -86,11 +100,24 @@ export default function ProductDetail() {
       return;
     }
 
+    const existingRoom = chatRooms.find(
+      (room) =>
+        room.itemId === product.id &&
+        room.chatHost === product.chatHost &&
+        room.chatGuest === userId,
+    );
+
+    if (existingRoom) {
+      navigate(`/chat/${existingRoom.roomId || existingRoom.id}`);
+      return;
+    }
+
     try {
       // 채팅방 생성
       const response = await axios.post(`${API}/chat/chatroom/create`, {
         itemId: product.id,
         chatHost: product.userId,
+        chatGuest: userId,
       });
 
       const roomId = response.data.roomId;

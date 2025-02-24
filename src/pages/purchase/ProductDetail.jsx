@@ -8,7 +8,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { chat, setActiveRoom } from '../../store/modules/chatReducer';
 // import { jwtDecode } from 'jwt-decode';
 // import { io } from 'socket.io-client';
-// import MiniMap from '../../components/purchase/MiniMap';
+import MiniMap from '../../components/purchase/MiniMap';
 
 const s3 = process.env.REACT_APP_S3;
 const API = process.env.REACT_APP_API_SERVER;
@@ -182,7 +182,7 @@ export default function ProductDetail() {
           </TradeStatus>
         </ProductInfoSection>
 
-        {/* <MiniMap /> */}
+        <MiniMap />
       </Container>
     </S.MainLayout>
   );

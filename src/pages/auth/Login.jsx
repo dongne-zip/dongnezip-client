@@ -40,6 +40,7 @@ export default function Login() {
         const { user } = response.data;
         alert('로그인 성공!');
         localStorage.setItem('user', JSON.stringify(user));
+
         //localStorage.setItem('access_token', authToken);
         dispatch(loginUser(user)); // Dispatch the user data to Redux
         navigate('/');

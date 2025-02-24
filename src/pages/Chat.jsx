@@ -6,17 +6,32 @@ import { jwtDecode } from 'jwt-decode';
 
 // 소켓 서버에 연결 (자동 연결은 하지 않음)
 const socket = io.connect('http://localhost:8080', { autoConnect: false });
-
+const API = process.env.REACT_APP_API_SERVER;
 export default function Chat() {
   // 소켓 연결 초기화 함수: 소켓이 연결되어 있지 않다면 연결 실행
   const initSocketConnect = () => {
     if (!socket.connected) socket.connect();
   };
 
-  // 컴포넌트 마운트 시 소켓 연결 초기화
+  // Redux store에서 채팅방 관련 데이터를 가져옴
+  const chatRoomData = useSelector((state) => state.chatReducer.chatRoom);
+  const chatHost = chatRoomData.chatHost;
+  // const chatGuest = chatRoomData.chatGuest;
+  const itemId = chatRoomData.itemId;
+  const roomId = useSelector((state) => state.chatReducer.activeRoomId);
+
+  // 채팅방 데이터 디버깅용 로그
+  console.log(chatHost);
+  console.log(itemId);
+
+  // 채팅방 입장
   useEffect(() => {
     initSocketConnect();
-  }, []);
+    if (roomId) {
+      socket.emit('joinRoom', roomId);
+      socket.emit('checkNick', userId, roomId);
+    }
+  }, [roomId]);
 
   // 상태 변수 선언
   const [userId, setUserId] = useState(null); // 로그인한 사용자의 ID
@@ -45,39 +60,11 @@ export default function Chat() {
       }
     }
     fetchUserToken();
-  }, []);
-
-  // Redux store에서 채팅방 관련 데이터를 가져옴
-  const chatRoomData = useSelector((state) => state.chatReducer.chatRoom);
-  const chatHost = chatRoomData.chatHost;
-  const chatGuest = chatRoomData.chatGuest;
-  const itemId = chatRoomData.itemId;
-
-  // 채팅방 데이터 디버깅용 로그
-  console.log(chatHost);
-  console.log(itemId);
-
-  // 채팅방 생성
-  useEffect(() => {
-    if (userId && itemId) {
-      axios
-        .post('http://localhost:8080/chat/chatroom/create', {
-          chatHost: userId,
-          itemId: itemId,
-        })
-        .then((response) => {
-          const roomId = response.data.roomId;
-          socket.emit('joinRoom', roomId);
-        })
-        .catch((err) => {
-          console.error(err);
-        });
-    }
-  });
+  }, [userId, itemId]);
 
   // 컴포넌트 마운트 시, 서버에서 기존 채팅 메시지 목록을 불러옴
   useEffect(() => {
-    fetch('http://localhost:8080/api-server/chat')
+    fetch(`${API}/chat/${roomId}`)
       .then((response) => {
         // 응답을 JSON으로 변환
         return response.json();
@@ -96,14 +83,16 @@ export default function Chat() {
   useEffect(() => {
     // notice 이벤트 처리 함수: 공지 메시지를 채팅 목록에 추가
     const noticeHandler = (notice) => {
-      setChatList((prev) => [...prev, { senderId: 'notice', content: notice }]);
+      setChatList((prev) => [
+        ...prev,
+        { type: 'notice', senderId: 'notice', content: notice },
+      ]);
     };
     socket.on('notice', noticeHandler);
 
     // message 이벤트 처리 함수: 실제 메시지를 채팅 목록에 추가
-    // userId와 chatGuest를 비교하여 메시지 타입('me' 또는 'other')를 결정
     const messageHandler = (data) => {
-      const type = userId === chatGuest ? 'me' : 'other';
+      const type = data.senderId === userId ? 'me' : 'other';
       setChatList((prev) => [
         ...prev,
         { type, sender: data.sender, content: data.message, name: data.nick },
@@ -136,6 +125,7 @@ export default function Chat() {
       const formData = new FormData();
       formData.append('image', imageInput);
       formData.append('senderId', userId);
+      formData.append('roomId', roomId);
 
       // 이미지 업로드를 위해 axios를 사용하여 서버에 전송
       try {
@@ -154,10 +144,8 @@ export default function Chat() {
       }
 
       sendData = {
-        roomId: itemId,
-        // roomId: '30',
+        roomId,
         senderId: userId,
-        // senderId: '1',
         msg: imageUrl,
         type: 'image',
       };
@@ -173,10 +161,8 @@ export default function Chat() {
 
       // 전송할 데이터 객체 생성 (여기서는 이미지 URL을 메시지로 전송)
       sendData = {
-        roomId: itemId,
-        // roomId: '30',
+        roomId,
         senderId: userId,
-        // senderId: '1',
         msg: msgInput,
         type: 'text',
       };

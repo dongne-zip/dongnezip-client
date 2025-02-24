@@ -14,7 +14,7 @@ const mapReducer = createSlice({
     },
     removeMarker: (state, action) => {
       state.markers = state.markers.filter(
-        (marker) => marker.id !== action.payload
+        (marker) => marker.id !== action.payload,
       );
     },
     saveMarkers: (state, action) => {

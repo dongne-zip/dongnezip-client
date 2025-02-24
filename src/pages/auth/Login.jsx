@@ -37,10 +37,10 @@ export default function Login() {
         { withCredentials: true },
       );
       if (response.status === 200) {
-        const { user, authToken } = response.data;
+        const { user } = response.data;
         alert('로그인 성공!');
         localStorage.setItem('user', JSON.stringify(user));
-        localStorage.setItem('access_token', authToken);
+        //localStorage.setItem('access_token', authToken);
         dispatch(loginUser(user)); // Dispatch the user data to Redux
         navigate('/');
       }

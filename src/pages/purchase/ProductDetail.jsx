@@ -38,26 +38,6 @@ export default function ProductDetail() {
     fetchProductDetail();
   }, [id]);
 
-  if (loading) {
-    return (
-      <S.MainLayout>
-        <DotLottieReact
-          src="https://lottie.host/31cbdf7f-72b9-4a9c-ac6d-c8e70c89cf34/eJQATUqvmn.lottie"
-          loop
-          autoplay
-        />
-      </S.MainLayout>
-    );
-  }
-
-  if (error || !product) {
-    return (
-      <S.MainLayout>
-        <h1>상품을 찾을 수 없습니다 🥲</h1>
-      </S.MainLayout>
-    );
-  }
-
   useEffect(() => {
     async function fetchUserToken(loginData) {
       try {
@@ -77,6 +57,26 @@ export default function ProductDetail() {
     }
     fetchUserToken();
   }, []);
+
+  if (loading) {
+    return (
+      <S.MainLayout>
+        <DotLottieReact
+          src="https://lottie.host/31cbdf7f-72b9-4a9c-ac6d-c8e70c89cf34/eJQATUqvmn.lottie"
+          loop
+          autoplay
+        />
+      </S.MainLayout>
+    );
+  }
+
+  if (error || !product) {
+    return (
+      <S.MainLayout>
+        <h1>상품을 찾을 수 없습니다 🥲</h1>
+      </S.MainLayout>
+    );
+  }
 
   // chatRoom 데이터 전달, 채팅방 생성
   const handleChatData = async () => {

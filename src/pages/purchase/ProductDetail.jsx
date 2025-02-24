@@ -24,6 +24,7 @@ export default function ProductDetail() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [userId, setUserId] = useState(null);
+  const [userNickname, setUserNickname] = useState(null);
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -54,6 +55,7 @@ export default function ProductDetail() {
       try {
         const decodeToken = JSON.parse(token);
         setUserId(decodeToken.id); //로그인한 사용자의 ID 설정
+        setUserNickname(decodeToken.nickname); //닉네임
       } catch (err) {
         console.error(err);
       }
@@ -160,7 +162,7 @@ export default function ProductDetail() {
           <SellerInfoWrapper>
             <SellerProfile />
             <SellerText>
-              <SellerName>판매자 {product.userId}</SellerName>
+              <SellerName>{userNickname}</SellerName>
               <SellerLocation>{product.Region.district}</SellerLocation>
             </SellerText>
           </SellerInfoWrapper>

@@ -1,23 +1,27 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import * as S from '../../styles/mixins';
 import styled from 'styled-components';
 import axios from 'axios';
 import { useDispatch } from 'react-redux';
 import { loginUser } from '../../store/types';
+
 const API = process.env.REACT_APP_API_SERVER;
+
 export default function Login() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('user'));
-    if (user) {
-      dispatch(loginUser(user)); // Dispatch the user data to Redux
-      navigate('/myPage'); // Redirect to myPage if already logged in
-    }
-  }, [dispatch, navigate]);
+
+  // useEffect(() => {
+  //   const user = JSON.parse(localStorage.getItem('user'));
+  //   if (user) {
+  //     dispatch(loginUser(user)); // Dispatch the user data to Redux
+  //     navigate('/myPage'); // Redirect to myPage if already logged in
+  //   }
+  // }, [dispatch, navigate]);
+
   const handleLogin = async (e) => {
     e.preventDefault();
     if (!email || !password) {
@@ -33,12 +37,13 @@ export default function Login() {
         { withCredentials: true },
       );
       if (response.status === 200) {
-        const { user } = response.data;
+        const { user, authToken } = response.data;
         alert('로그인 성공!');
         localStorage.setItem('user', JSON.stringify(user));
-        // localStorage.setItem('access_token', token);
+
+        localStorage.setItem('access_token', authToken);
         dispatch(loginUser(user)); // Dispatch the user data to Redux
-        navigate('/myPage');
+        navigate('/');
       }
       console.log(response);
     } catch (error) {
@@ -71,6 +76,7 @@ export default function Login() {
             onChange={(e) => setPassword(e.target.value)}
           />
           <br />
+          <Link to="/findPw">비밀번호 찾기</Link>
           <br />
           <Button type="submit" className="emailLogin">
             로그인

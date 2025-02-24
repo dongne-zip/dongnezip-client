@@ -1,15 +1,18 @@
 import { useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { useState } from 'react';
+// import { useEffect } from 'react';
 import axios from 'axios';
 
 const API = process.env.REACT_APP_API_SERVER;
+axios.defaults.withCredentials = true;
 
 export default function ProfilePart() {
   const user = useSelector((state) => state.isLogin.user);
   const isLoggedIn = useSelector((state) => state.isLogin.isLoggedIn);
   const [profileData, setProfileData] = useState(user);
+  const navigate = useNavigate();
 
   // 로그인 상태일 때만 프로필 정보 요청
   // useEffect(() => {
@@ -42,7 +45,6 @@ export default function ProfilePart() {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
-          withCredentials: true,
         });
 
         setProfileData(response.data.fileUrl); // 업로드 후, 파일 URL을 상태에 저장
@@ -56,6 +58,20 @@ export default function ProfilePart() {
   if (!isLoggedIn) {
     return <div>로그인 후에 이용할 수 있습니다.</div>;
   }
+
+  const handleLogout = async () => {
+    try {
+      const response = await axios.post(`${API}/user/logout`);
+      if (response.status === 200) {
+        localStorage.removeItem('emailAuthToken');
+
+        navigate('/');
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+      alert('로그아웃 중 문제가 발생했습니다. 다시 시도해주세요.');
+    }
+  };
 
   return (
     <ProfilePartS>
@@ -72,6 +88,7 @@ export default function ProfilePart() {
       <Link to="/changeInfo">
         <EditBtn>회원정보 수정</EditBtn>
       </Link>
+      <button onClick={handleLogout}>LOGOUT</button>
     </ProfilePartS>
   );
 }

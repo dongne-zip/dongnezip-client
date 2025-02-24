@@ -40,7 +40,7 @@ function App() {
           {/* 마이페이지 관련 */}
           <Route path="/login" element={<Login />}></Route>
           <Route path="/join" element={<Register />}></Route>
-          <Route path="/myPage" element={<Index />}></Route>
+          <Route path="/mypage" element={<Index />}></Route>
           <Route path="/changeInfo" element={<EditProfile />}></Route>
           <Route path="/findPw" element={<FindPw />}></Route>
 

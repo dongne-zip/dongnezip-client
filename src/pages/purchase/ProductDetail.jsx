@@ -30,6 +30,7 @@ export default function ProductDetail() {
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false); //삭제 확인
   const [isAlertOpen, setIsAlertOpen] = useState(false); //삭제 완료 알림
+  const [isDropdown, setDropdown] = useState(false);
   const chatRooms = useSelector((state) => state.chat.chatRooms);
 
   useEffect(() => {
@@ -61,20 +62,6 @@ export default function ProductDetail() {
       }
     }
   }, []);
-
-  // ---------- 상품 등록한 사용자인지 확인 ----------
-  const isOwner = userId === product?.userId;
-
-  // 삭제 요청
-  const handleDeleteProduct = async () => {
-    try {
-      await deleteItemDetail(id);
-      setIsModalOpen(false);
-      setIsAlertOpen(true);
-    } catch (error) {
-      console.error('삭제 실패');
-    }
-  };
 
   // 로딩 애니메이션
   if (loading) {
@@ -145,11 +132,70 @@ export default function ProductDetail() {
     }
   };
 
+  // ---------- 상품 등록한 사용자인지 확인 ----------
+  const isOwner = userId === product?.userId;
+
+  // 삭제 요청
+  const handleDeleteProduct = async () => {
+    try {
+      await deleteItemDetail(id);
+      setIsModalOpen(false);
+      setIsAlertOpen(true);
+    } catch (error) {
+      console.error('삭제 실패');
+    }
+  };
+
   return (
     <S.MainLayout>
-      <Breadcrumb>
-        구매 &gt; {product.Category.category} &gt; {product.title}
-      </Breadcrumb>
+      <BreadcrumbContainer>
+        <Breadcrumb onClick={() => navigate(-1)}>
+          구매 &gt; {product.Category.category} &gt; {product.title}
+        </Breadcrumb>
+
+        {/* 판매자 본인만 볼수 있는 드롭다운 버튼 */}
+        {isOwner && (
+          <>
+            <MoreButton onClick={() => setDropdown((prev) => !prev)}>
+              <span className="material-symbols-outlined">more_vert</span>
+            </MoreButton>
+
+            {/* 드롭다운 메뉴 : 편집 & 삭제 버튼 표시 */}
+            {isDropdown && (
+              <DropdownMenu>
+                <DropdownItem>
+                  <button>
+                    <span className="material-symbols-outlined">edit</span>
+                  </button>
+                  <div>편집</div>
+                </DropdownItem>
+
+                <DropdownItem onClick={() => setIsModalOpen(true)}>
+                  <button onClick={() => setIsModalOpen(true)}>
+                    <span className="material-symbols-outlined">delete</span>
+                  </button>
+                  <div>삭제</div>
+                </DropdownItem>
+              </DropdownMenu>
+            )}
+          </>
+        )}
+      </BreadcrumbContainer>
+
+      {/* 모달창 (삭제) */}
+      <ModalDelete
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onDelete={handleDeleteProduct}
+      />
+
+      {/* 모달창 (삭제 완료 알림) */}
+      <ModalAlert
+        isOpen={isAlertOpen}
+        content={'삭제가 완료되었습니다.'}
+        onClose={() => setIsAlertOpen(false)}
+        onNavigate={() => navigate('/purchase')}
+      />
 
       <Container>
         <ProductImgSection>
@@ -170,28 +216,6 @@ export default function ProductDetail() {
 
         {/* ----------- 상품 상세 정보 섹션 -----------*/}
         <ProductInfoSection>
-          {/* 사용자가 등록한 상품이면 편집 & 삭제 버튼 표시 */}
-          {isOwner && (
-            <div>
-              <button onClick={() => setIsModalOpen(true)}>삭제</button>
-            </div>
-          )}
-
-          {/* 모달창 (삭제) */}
-          <ModalDelete
-            isOpen={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
-            onDelete={handleDeleteProduct}
-          />
-
-          {/* 모달창 (삭제 완료 알림) */}
-          <ModalAlert
-            isOpen={isAlertOpen}
-            content={'삭제가 완료되었습니다.'}
-            onClose={() => setIsAlertOpen(false)}
-            onNavigate={() => navigate('/purchase')}
-          />
-
           {/* 상품 상세 */}
           <ProductTitle>{product.title}</ProductTitle>
           <ProductPrice>{product.price.toLocaleString()} 원</ProductPrice>
@@ -217,10 +241,52 @@ export default function ProductDetail() {
 }
 
 /* -------------- 현재 페이지 위치 --------------*/
-const Breadcrumb = styled.div`
+const BreadcrumbContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+`;
+
+const MoreButton = styled.button`
+  color: black;
+`;
+const Breadcrumb = styled.button`
   font-size: 14px;
   color: gray;
   margin-bottom: 20px;
+`;
+
+const DropdownMenu = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border: 1px solid var(--color-lightgray);
+  position: absolute;
+  top: 8px;
+  right: 34px;
+  background: var(--color-white);
+  padding: 4px;
+`;
+
+const DropdownItem = styled.div`
+  display: flex;
+  flex-direction: row;
+  color: gray;
+  align-items: center;
+  font-size: 14px;
+
+  border-radius: 5px;
+  padding: 4px;
+  height: 24px;
+
+  &:hover {
+    background: #f4f6f8;
+  }
+  span {
+    font-size: 12px;
+  }
 `;
 
 /* -------------- 섹션 포함하는 컨테이너 --------------*/

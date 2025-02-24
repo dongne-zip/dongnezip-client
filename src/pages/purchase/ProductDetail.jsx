@@ -10,6 +10,8 @@ import { chat, setActiveRoom } from '../../store/modules/chatReducer';
 // import { io } from 'socket.io-client';
 import MiniMap from '../../components/purchase/MiniMap';
 import { deleteItemDetail } from '../../utils/api';
+import ModalDelete from '../../components/purchase/ModalDelete';
+import ModalAlert from '../../components/common/ModalAlert';
 
 const s3 = process.env.REACT_APP_S3;
 const API = process.env.REACT_APP_API_SERVER;
@@ -25,7 +27,8 @@ export default function ProductDetail() {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false); //삭제 확인
+  const [isAlertOpen, setIsAlertOpen] = useState(false); //삭제 완료 알림
   const chatRooms = useSelector((state) => state.chat.chatRooms);
 
   useEffect(() => {
@@ -43,7 +46,7 @@ export default function ProductDetail() {
     fetchProductDetail();
   }, [id]);
 
-  // 로그인된 사용자 정보 가져오기
+  // ---------- 로그인된 사용자 정보 가져오기 ----------
   useEffect(() => {
     const token = localStorage.getItem('user');
     console.log(token);
@@ -57,21 +60,21 @@ export default function ProductDetail() {
     }
   }, []);
 
-  // 상품 등록한 사용자인지 확인
+  // ---------- 상품 등록한 사용자인지 확인 ----------
   const isOwner = userId === product?.userId;
 
   // 삭제 요청
   const handleDeleteProduct = async () => {
     try {
       await deleteItemDetail(id);
-      alert('삭제가 완료되었습니다');
-      navigate('/purchase');
+      setIsModalOpen(false);
+      setIsAlertOpen(true);
     } catch (error) {
       console.error('삭제 실패');
     }
   };
 
-  console.log('userid', userId);
+  // 로딩 애니메이션
   if (loading) {
     return (
       <S.MainLayout>
@@ -88,18 +91,6 @@ export default function ProductDetail() {
     return (
       <S.MainLayout>
         <h1>상품을 찾을 수 없습니다 🥲</h1>
-      </S.MainLayout>
-    );
-  }
-
-  if (loading) {
-    return (
-      <S.MainLayout>
-        <DotLottieReact
-          src="https://lottie.host/31cbdf7f-72b9-4a9c-ac6d-c8e70c89cf34/eJQATUqvmn.lottie"
-          loop
-          autoplay
-        />
       </S.MainLayout>
     );
   }
@@ -174,7 +165,8 @@ export default function ProductDetail() {
             </SellerText>
           </SellerInfoWrapper>
         </ProductImgSection>
-        {/* 상품 상세 정보 섹션 */}
+
+        {/* ----------- 상품 상세 정보 섹션 -----------*/}
         <ProductInfoSection>
           {/* 사용자가 등록한 상품이면 편집 & 삭제 버튼 표시 */}
           {isOwner && (
@@ -183,20 +175,25 @@ export default function ProductDetail() {
             </div>
           )}
 
-          {/* 모달창 (삭제 확인) */}
-          {isModalOpen && (
-            <div>
-              <p>정말 삭제하시겠습니까??</p>
-              <button onClick={handleDeleteProduct}>삭제</button>
-              <button onClick={() => setIsModalOpen(false)}>취소</button>
-            </div>
-          )}
+          {/* 모달창 (삭제) */}
+          <ModalDelete
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            onDelete={handleDeleteProduct}
+          />
+
+          {/* 모달창 (삭제 완료 알림) */}
+          <ModalAlert
+            isOpen={isAlertOpen}
+            content={'삭제가 완료되었습니다.'}
+            onClose={() => setIsAlertOpen(false)}
+            onNavigate={() => navigate('/purchase')}
+          />
 
           {/* 상품 상세 */}
           <ProductTitle>{product.title}</ProductTitle>
           <ProductPrice>{product.price.toLocaleString()} 원</ProductPrice>
           <ProductStatus>상품 상태 : {product.itemStatus}</ProductStatus>
-
           <ProductDescription>{product.detail}</ProductDescription>
 
           {/* 버튼 영역 */}
@@ -213,14 +210,6 @@ export default function ProductDetail() {
 
         <MiniMap />
       </Container>
-
-      {/* 상품 상세 삭제 모달 */}
-      {isModalOpen && (
-        <div>
-          <button onClick={handleDeleteProduct}>삭제</button>
-          <button onClick={() => setIsModalOpen}>취소</button>
-        </div>
-      )}
     </S.MainLayout>
   );
 }

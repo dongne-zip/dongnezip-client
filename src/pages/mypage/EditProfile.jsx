@@ -6,6 +6,7 @@ import * as S from '../../styles/mixins';
 import styled from 'styled-components';
 
 const API = process.env.REACT_APP_API_SERVER;
+axios.defaults.withCredentials = true;
 
 export default function EditProfile() {
   const user = useSelector((state) => state.isLogin.user);
@@ -79,23 +80,21 @@ export default function EditProfile() {
     }
 
     console.log('서버 보내는 데이터: ', updateData);
-    const storedUser = JSON.parse(localStorage.getItem('user'));
+    // const storedUser = JSON.parse(localStorage.getItem('user'));
     // Send the update data to the server if there are any changes
     if (Object.keys(updateData).length > 0) {
       try {
         const response = await axios.patch(
           `${API}/user/changeInfo`,
           updateData,
-          storedUser,
+
           { withCredentials: true },
         );
 
-        // Check if the response is successful and handle accordingly
         if (response.status === 200) {
           alert('회원정보가 성공적으로 업데이트되었습니다.');
           navigate('/mypage');
         } else {
-          // Server returned a non-200 status code, handle the message properly
           alert(response.data.message);
         }
       } catch (error) {
@@ -107,6 +106,20 @@ export default function EditProfile() {
     }
   };
 
+  const handleDelete = async () => {
+    try {
+      const response = await axios.delete(`${API}/user/deleteUser`);
+      if (response.status === 200) {
+        alert('회원 탈퇴 됐습니다.');
+        navigate('/');
+      } else {
+        alert(response.data.message);
+      }
+    } catch (error) {
+      console.error('회원 탈퇴 실패:', error);
+      alert('회원 탈퇴 실패. 다시 시도해주세요.');
+    }
+  };
   if (!isLoggedIn) {
     return <div>로그인 후에 이용할 수 있습니다.</div>;
   }
@@ -169,6 +182,8 @@ export default function EditProfile() {
         >
           수정
         </Button>
+        <br />
+        <button onClick={handleDelete}>회원탈퇴</button>
       </ProfileContainer>
     </ExtendedMainLayout>
   );

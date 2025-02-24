@@ -18,7 +18,7 @@ const API = process.env.REACT_APP_API_SERVER;
 export default function SaleRegister() {
   const dispatch = useDispatch();
   const { categoryId, title, itemStatus, price, detail } = useSelector(
-    (state) => state.sale
+    (state) => state.sale,
   );
   const storedMarkers = useSelector((state) => state.map.markers);
 

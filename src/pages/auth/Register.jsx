@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import * as S from '../../styles/mixins';
 import styled from 'styled-components';
 import axios from 'axios';
 
 const API = process.env.REACT_APP_API_SERVER;
+axios.defaults.withCredentials = true; // 모든 요청에 쿠키 포함
 
 export default function Register() {
-  axios.defaults.withCredentials = true; // 모든 요청에 쿠키 포함
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [isValid, setIsValid] = useState(null);
   const [nickname, setNickname] = useState('');
@@ -79,6 +80,7 @@ export default function Register() {
 
         if (response.status === 200) {
           alert('회원가입이 완료되었습니다!');
+          navigate('/login');
         }
       } catch (error) {
         console.error(error);

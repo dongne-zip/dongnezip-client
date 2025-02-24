@@ -3,6 +3,7 @@ import { io } from 'socket.io-client';
 import axios from 'axios';
 import { useSelector } from 'react-redux';
 import { jwtDecode } from 'jwt-decode';
+import { useParams } from 'react-router-dom';
 
 // 소켓 서버에 연결 (자동 연결은 하지 않음)
 const socket = io.connect('http://localhost:8080', { autoConnect: false });
@@ -13,31 +14,33 @@ export default function Chat() {
     if (!socket.connected) socket.connect();
   };
 
+  const { ParamsRoomId: paramsRoomId } = useParams;
+
   // Redux store에서 채팅방 관련 데이터를 가져옴
-  const chatRoomData = useSelector((state) => state.chatReducer.chatRoom);
+  const chatRoomData = useSelector((state) => state.chat.chatRooms);
   const chatHost = chatRoomData.chatHost;
   // const chatGuest = chatRoomData.chatGuest;
   const itemId = chatRoomData.itemId;
-  const roomId = useSelector((state) => state.chatReducer.activeRoomId);
+  const roomId = useSelector((state) => state.chat.activeRoomId);
 
   // 채팅방 데이터 디버깅용 로그
   console.log(chatHost);
   console.log(itemId);
-
-  // 채팅방 입장
-  useEffect(() => {
-    initSocketConnect();
-    if (roomId) {
-      socket.emit('joinRoom', roomId);
-      socket.emit('checkNick', userId, roomId);
-    }
-  }, [roomId]);
 
   // 상태 변수 선언
   const [userId, setUserId] = useState(null); // 로그인한 사용자의 ID
   const [msgInput, setMsgInput] = useState(''); // 메시지 입력 상태
   const [imageInput, setImageInput] = useState(null); // 이미지 파일 입력 상태
   const [chatList, setChatList] = useState([]); // 채팅 메시지 목록
+
+  // 채팅방 입장
+  useEffect(() => {
+    initSocketConnect();
+    if (paramsRoomId) {
+      socket.emit('joinRoom', roomId);
+      socket.emit('checkNick', userId, roomId);
+    }
+  }, []);
 
   // 컴포넌트 마운트 시 사용자 토큰을 받아와서 userId 설정
   useEffect(() => {
@@ -60,7 +63,7 @@ export default function Chat() {
       }
     }
     fetchUserToken();
-  }, [userId, itemId]);
+  }, []);
 
   // 컴포넌트 마운트 시, 서버에서 기존 채팅 메시지 목록을 불러옴
   useEffect(() => {
@@ -149,7 +152,7 @@ export default function Chat() {
         msg: imageUrl,
         type: 'image',
       };
-
+      console.log('senddata', sendData);
       // 소켓을 통해 'send' 이벤트로 메시지 전송
       socket.emit('send', sendData);
       // 메시지 입력 및 이미지 상태 초기화

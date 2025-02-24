@@ -40,7 +40,8 @@ export default function chatReducer(state = initialState, action) {
       const existngRoom = state.chatRooms.find(
         (room) =>
           room.itemId === action.payload.itemId &&
-          room.chatHost === action.payload.chatHost,
+          room.chatHost === action.payload.chatHost &&
+          room.chatGuest === action.payload.chatGuest,
       );
       // 이미 존재하는 경우 상태를 그대로 반환
       if (existngRoom) {

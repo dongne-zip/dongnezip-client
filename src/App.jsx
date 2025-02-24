@@ -31,11 +31,11 @@ function App() {
             path="/purchase/product-detail/:id"
             element={<ProductDetail />}
           />
+          <Route path="/chat/:roomId" element={<Chat />}></Route>
 
           {/* 판매페이지 관련 */}
           <Route path="/sales" element={<SaleRegister />} />
           <Route path="/item" element={<SellerSales />} />
-          <Route path="/chat" element={<Chat />}></Route>
 
           {/* 마이페이지 관련 */}
           <Route path="/login" element={<Login />}></Route>

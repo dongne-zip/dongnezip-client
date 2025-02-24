@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import axios from 'axios';
 import { useSelector } from 'react-redux';
-import { jwtDecode } from 'jwt-decode';
+// import { jwtDecode } from 'jwt-decode';
 import { useParams } from 'react-router-dom';
 
 // 소켓 서버에 연결 (자동 연결은 하지 않음)
@@ -14,73 +14,79 @@ export default function Chat() {
     if (!socket.connected) socket.connect();
   };
 
-  const { ParamsRoomId: paramsRoomId } = useParams;
+  const { roomId: paramsRoomId } = useParams();
 
   // Redux store에서 채팅방 관련 데이터를 가져옴
-  const chatRoomData = useSelector((state) => state.chat.chatRooms);
-  const chatHost = chatRoomData.chatHost;
-  // const chatGuest = chatRoomData.chatGuest;
-  const itemId = chatRoomData.itemId;
-  const roomId = useSelector((state) => state.chat.activeRoomId);
-
-  // 채팅방 데이터 디버깅용 로그
-  console.log(chatHost);
-  console.log(itemId);
+  const { activeRoomId, chatRooms } = useSelector((state) => state.chat);
+  const activeRoom = chatRooms.find((room) => room.itemId === activeRoomId);
+  const chatHost = activeRoom?.chatHost;
+  const chatGuest = activeRoom?.chatGuest;
+  const roomId = activeRoomId || paramsRoomId;
 
   // 상태 변수 선언
   const [userId, setUserId] = useState(null); // 로그인한 사용자의 ID
+  const [userNickname, setUserNickname] = useState(null);
   const [msgInput, setMsgInput] = useState(''); // 메시지 입력 상태
   const [imageInput, setImageInput] = useState(null); // 이미지 파일 입력 상태
   const [chatList, setChatList] = useState([]); // 채팅 메시지 목록
 
   // 채팅방 입장
   useEffect(() => {
-    initSocketConnect();
-    if (paramsRoomId) {
-      socket.emit('joinRoom', roomId);
-      socket.emit('checkNick', userId, roomId);
+    if (userId && roomId) {
+      initSocketConnect();
+      if (paramsRoomId) {
+        socket.emit('joinRoom', roomId);
+        socket.emit('checkNick', userNickname, roomId);
+      }
+    }
+  }, [userId, roomId]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('user');
+    console.log(token);
+    if (token) {
+      try {
+        const decodeToken = JSON.parse(token);
+        setUserId(decodeToken.id);
+        console.log('decode', decodeToken.id);
+      } catch (err) {
+        console.error(err);
+      }
     }
   }, []);
 
   // 컴포넌트 마운트 시 사용자 토큰을 받아와서 userId 설정
   useEffect(() => {
-    async function fetchUserToken(loginData) {
+    async function fetchUserToken() {
       try {
-        // 사용자 로그인 API 호출 (loginData는 필요에 따라 전달)
-        const response = await axios.post(
-          'https://localhost:8080/api-server/user/login/local',
-          loginData,
-          {
-            withCredentials: true,
-          },
-        );
-        // 응답 받은 토큰 디코딩
-        const token = response.data.token;
-        const decodeToken = jwtDecode(token);
-        setUserId(decodeToken.userId);
+        const response = await axios.post(`${API}/user/token`, {
+          withCredentials: true,
+        });
+        const token = response.data.nickname;
+        // const decodeToken = jwtDecode(token);
+        setUserNickname(token);
       } catch (err) {
-        console.error(err);
+        console.error('useridErr', err);
       }
     }
+
     fetchUserToken();
   }, []);
 
+  console.log(userNickname);
+
   // 컴포넌트 마운트 시, 서버에서 기존 채팅 메시지 목록을 불러옴
   useEffect(() => {
-    fetch(`${API}/chat/${roomId}`)
-      .then((response) => {
-        // 응답을 JSON으로 변환
-        return response.json();
-      })
-      .then((data) => {
-        console.log('response', data);
-        // 불러온 메시지 데이터를 상태에 저장
-        setChatList(data.message);
-      })
-      .catch((err) => {
-        console.error(err);
-      });
-  }, []);
+    if (roomId) {
+      fetch(`${API}/chat/${roomId}`)
+        .then((response) => response.json())
+        .then((data) => {
+          console.log('불러온 메시지:', data);
+          setChatList(data.message || []); // 데이터가 없을 경우 빈 배열 설정
+        })
+        .catch((err) => console.error('메시지 불러오기 실패:', err));
+    }
+  }, [roomId]);
 
   // 소켓 이벤트 핸들러 설정: notice와 message 이벤트 처리
   useEffect(() => {
@@ -88,7 +94,7 @@ export default function Chat() {
     const noticeHandler = (notice) => {
       setChatList((prev) => [
         ...prev,
-        { type: 'notice', senderId: 'notice', content: notice },
+        { type: 'notice', senderId: 'notice', message: notice },
       ]);
     };
     socket.on('notice', noticeHandler);
@@ -98,7 +104,7 @@ export default function Chat() {
       const type = data.senderId === userId ? 'me' : 'other';
       setChatList((prev) => [
         ...prev,
-        { type, sender: data.sender, content: data.message, name: data.nick },
+        { type, sender: data.sender, message: data.message, name: data.nick },
       ]);
     };
     socket.on('message', messageHandler);
@@ -121,14 +127,16 @@ export default function Chat() {
 
     let sendData = {};
 
+    const formData = new FormData();
+    formData.append('image', imageInput);
+    formData.append('senderId', userId);
+    formData.append('senderNick', userNickname);
+    formData.append('roomId', roomId);
+    formData.append('chatHost', chatHost);
+    formData.append('chatGuest', chatGuest);
+
     if (imageInput) {
       let imageUrl = '';
-
-      // FormData 객체를 생성하여 이미지, 방 번호, 송신자 ID를 추가
-      const formData = new FormData();
-      formData.append('image', imageInput);
-      formData.append('senderId', userId);
-      formData.append('roomId', roomId);
 
       // 이미지 업로드를 위해 axios를 사용하여 서버에 전송
       try {
@@ -143,16 +151,16 @@ export default function Chat() {
         );
         imageUrl = response.data.imageUrl;
       } catch (err) {
-        console.error(err);
+        console.error('imageErr', err);
       }
 
       sendData = {
         roomId,
         senderId: userId,
+        senderNick: userNickname,
         msg: imageUrl,
         type: 'image',
       };
-      console.log('senddata', sendData);
       // 소켓을 통해 'send' 이벤트로 메시지 전송
       socket.emit('send', sendData);
       // 메시지 입력 및 이미지 상태 초기화
@@ -166,6 +174,7 @@ export default function Chat() {
       sendData = {
         roomId,
         senderId: userId,
+        senderNick: userNickname,
         msg: msgInput,
         type: 'text',
       };
@@ -180,25 +189,41 @@ export default function Chat() {
 
   return (
     <>
-      {console.log()}
       {/* 채팅 메시지 목록 출력 */}
       <section>
-        {chatList.map((chat, key) =>
-          // notice 타입의 메시지인 경우
-          chat.type === 'notice' ? (
-            <div key={key} className="notice">
-              {chat.content}
-            </div>
-          ) : (
-            // 일반 메시지인 경우: 송신자가 'other'인 경우에만 닉네임 표시
-            <div key={key} className={`speech ${chat.type}`}>
-              {chat.type == 'other' && (
-                <span className="nickname">{chat.name}</span>
-              )}
-              <span className="msg-box">{chat.content}</span>
-            </div>
-          ),
-        )}
+        {chatList.map((chat, key) => {
+          if (chat.type === 'notice') {
+            return (
+              <div key={key} className="notice">
+                {chat.message}
+              </div>
+            );
+          } else if (chat.msgType === 'image') {
+            return (
+              <div
+                key={key}
+                className={`speech ${chat.senderNick === userNickname ? 'me' : 'other'}`}
+              >
+                {chat.senderNick !== userNickname && (
+                  <span className="nickname">{chat.name || ''}</span>
+                )}
+                <img src={chat.message} alt="uploaded" />
+              </div>
+            );
+          } else {
+            return (
+              <div
+                key={key}
+                className={`speech ${chat.senderNick === userNickname ? 'me' : 'other'}`}
+              >
+                {chat.senderNick !== userNickname && (
+                  <span className="nickname">{chat.name || ''}</span>
+                )}
+                <span className="msg-box">{chat.message}</span>
+              </div>
+            );
+          }
+        })}
       </section>
       <div></div>
       {/* 메시지 전송 폼 */}

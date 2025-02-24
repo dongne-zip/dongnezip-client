@@ -72,26 +72,6 @@ export default function ProductDetail() {
     );
   }
 
-  useEffect(() => {
-    async function fetchUserToken(loginData) {
-      try {
-        const response = await axios.post(
-          `${API}/user/login/local`,
-          loginData,
-          {
-            withCredentials: true,
-          },
-        );
-        const token = response.data.token;
-        const decodeToken = jwtDecode(token);
-        setUserId(decodeToken.userId);
-      } catch (err) {
-        console.error(err);
-      }
-    }
-    fetchUserToken();
-  }, []);
-
   if (loading) {
     return (
       <S.MainLayout>

@@ -30,6 +30,7 @@ export default function Chat() {
   const [imageInput, setImageInput] = useState(null); // 이미지 파일 입력 상태
   const [chatList, setChatList] = useState([]); // 채팅 메시지 목록
 
+  // console.log('usernici', userNickname);
   // 채팅방 입장
   useEffect(() => {
     if (userId && roomId) {
@@ -104,7 +105,12 @@ export default function Chat() {
       const type = data.senderId === userId ? 'me' : 'other';
       setChatList((prev) => [
         ...prev,
-        { type, sender: data.sender, message: data.message, name: data.nick },
+        {
+          type,
+          senderId: data.senderId,
+          message: data.message,
+          name: data.awnsweNick,
+        },
       ]);
     };
     socket.on('message', messageHandler);

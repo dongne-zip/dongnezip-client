@@ -6,7 +6,7 @@ const initialState = {
   itemStatus: '',
   price: '',
   detail: '',
-  imageUrl: '',
+  imageUrls: [], // 다중 이미지 업로드를 위해 배열로 관리
   errors: {},
 };
 
@@ -34,15 +34,15 @@ const saleReducer = createSlice({
       console.log('setDetail:', action.payload);
       state.detail = action.payload;
     },
-    setImageUrl: (state, action) => {
-      console.log('setImageUrl:', action.payload);
-      state.imageUrl = action.payload;
+    setImageUrls: (state, action) => {
+      console.log('setImageUrls:', action.payload);
+      state.imageUrls = action.payload;
     },
     validateForm: (state) => {
       const newErrors = {};
-      if (!state.title) newErrors.title = '상품명을 입력해주세요';
+      if (!state.title.trim()) newErrors.title = '상품명을 입력해주세요';
       if (!state.price) newErrors.price = '가격을 입력해주세요';
-      if (!state.detail) newErrors.detail = '내용을 입력해주세요';
+      if (!state.detail.trim()) newErrors.detail = '내용을 입력해주세요';
       console.log('validateForm errors:', newErrors);
       state.errors = newErrors;
     },
@@ -59,9 +59,8 @@ export const {
   setItemStatus,
   setPrice,
   setDetail,
-  setImageUrl,
+  setImageUrls,
   validateForm,
   resetForm,
 } = saleReducer.actions;
-
 export default saleReducer.reducer;

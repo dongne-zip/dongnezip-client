@@ -17,7 +17,7 @@ const mapReducer = createSlice({
         (marker) => marker.id !== action.payload,
       );
     },
-    saveMarkers: (state, action) => {
+    setMarkers: (state, action) => {
       state.markers = action.payload;
     },
     clearMarkers: (state) => {
@@ -26,6 +26,6 @@ const mapReducer = createSlice({
   },
 });
 
-export const { addMarker, removeMarker, saveMarkers, clearMarkers } =
+export const { addMarker, removeMarker, setMarkers, clearMarkers } =
   mapReducer.actions;
 export default mapReducer.reducer;

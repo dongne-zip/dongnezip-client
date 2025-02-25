@@ -1,4 +1,8 @@
 import { useDispatch, useSelector } from 'react-redux';
+import { useEffect, useRef, useState } from 'react';
+import axios from 'axios';
+import { useParams } from 'react-router-dom';
+import Map from '../../components/sales/Map';
 import {
   setCategoryId,
   setTitle,
@@ -7,15 +11,14 @@ import {
   setDetail,
   resetForm,
 } from '../../store/modules/saleReducer';
-import { useRef, useState } from 'react';
-import axios from 'axios';
-import Map from '../../components/sales/Map';
 import * as S from '../../styles/mixins';
 import styled from 'styled-components';
 
 const API = process.env.REACT_APP_API_SERVER;
+axios.defaults.withCredentials = true;
 
-export default function SaleRegister() {
+export default function SaleChange() {
+  const { itemId } = useParams();
   const dispatch = useDispatch();
   const { categoryId, title, itemStatus, price, detail } = useSelector(
     (state) => state.sale,
@@ -24,23 +27,48 @@ export default function SaleRegister() {
 
   const [localErrors, setLocalErrors] = useState({});
   const [selectedFiles, setSelectedFiles] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   const titleRef = useRef(null);
   const priceRef = useRef(null);
   const detailRef = useRef(null);
 
+  // 기존 상품 정보를 불러오기
+  useEffect(() => {
+    const fetchItem = async () => {
+      try {
+        const response = await axios.get(`${API}/item/${itemId}`);
+        if (response.data.success) {
+          const data = response.data.data;
+          dispatch(setCategoryId(data.categoryId));
+          dispatch(setTitle(data.title));
+          dispatch(setItemStatus(data.itemStatus));
+          dispatch(setPrice(data.price));
+          dispatch(setDetail(data.detail));
+          if (data.map && data.map.placeName) {
+          }
+          setLoading(false);
+        } else {
+          alert('상품 정보를 불러오지 못했습니다.');
+        }
+      } catch (error) {
+        console.error('상품 정보 로드 오류:', error);
+        alert('상품 정보를 불러오는 중 문제가 발생했습니다.');
+      }
+    };
+    fetchItem();
+  }, [itemId, dispatch]);
+
   const handlePriceChange = (e) => {
     let value = e.target.value.replace(/[^0-9]/g, '');
-
     if (value === '') {
       dispatch(setPrice(''));
       return;
     }
-
     let numericValue = parseInt(value, 10).toLocaleString();
     dispatch(setPrice(numericValue));
   };
 
-  // Enter 키 입력 시 다음
   const handleKeyPress = (e, nextRef) => {
     if (e.key === 'Enter' && nextRef) {
       e.preventDefault();
@@ -48,20 +76,16 @@ export default function SaleRegister() {
     }
   };
 
-  // 파일 업로드 (최대 5개)
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
-
     if (selectedFiles.length + files.length > 5) {
       alert('최대 5개의 이미지만 업로드할 수 있습니다.');
       return;
     }
-
     setSelectedFiles([...selectedFiles, ...files]);
   };
 
-  // 로컬에서 폼 검증 함수
   const validateForm = () => {
     const errors = {};
     if (!title.trim()) errors.title = '상품명을 입력해주세요';
@@ -70,14 +94,10 @@ export default function SaleRegister() {
     return errors;
   };
 
-  // 상품 등록
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const errors = validateForm();
     setLocalErrors(errors);
-
-    // 에러 처리
     if (Object.keys(errors).length > 0) return;
 
     if (storedMarkers.length === 0) {
@@ -97,31 +117,32 @@ export default function SaleRegister() {
     formData.append('detail', detail);
     formData.append('latitude', storedMarkers[0].lat);
     formData.append('longitude', storedMarkers[0].lng);
-    formData.append('locationInfo', storedMarkers[0].info);
+    formData.append('placeName', storedMarkers[0].placeName);
 
-    console.log(formData);
     try {
-      const response = await axios.post(`${API}/item/additem`, formData, {
+      const response = await axios.patch(`${API}/item/${itemId}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
       if (response.data.success) {
-        alert('등록이 완료되었습니다!');
+        alert('수정이 완료되었습니다!');
         dispatch(resetForm());
         setSelectedFiles([]);
         setLocalErrors({});
       } else {
-        alert('등록 실패: ' + response.data.message);
+        alert('수정 실패: ' + response.data.message);
       }
     } catch (error) {
-      console.error('상품 등록 오류:', error);
-      alert('상품 등록 중 문제가 발생했습니다.');
+      console.error('상품 수정 오류:', error);
+      alert('상품 수정 중 문제가 발생했습니다.');
     }
   };
 
+  if (loading) return <div>Loading...</div>;
+
   return (
     <S.MainLayout>
-      <H1>판매 글 쓰기</H1>
+      <H1>판매 글 수정</H1>
       <CenteredContainer>
         <RegisterContainer>
           <Category>
@@ -130,6 +151,9 @@ export default function SaleRegister() {
               value={categoryId}
               onChange={(e) => dispatch(setCategoryId(e.target.value))}
             >
+              <option value="" disabled>
+                선택
+              </option>
               <option value="1">의류/미용</option>
               <option value="2">생활/주방</option>
               <option value="3">디지털</option>
@@ -157,6 +181,7 @@ export default function SaleRegister() {
                 <StatusButton
                   type="button"
                   key={status}
+                  active={itemStatus === status}
                   onClick={() => dispatch(setItemStatus(status))}
                 >
                   {status}
@@ -208,7 +233,7 @@ export default function SaleRegister() {
               <H3>거래 희망 장소📍</H3>
               <Map />
             </Section>
-            <SubmitButton type="submit">등록하기</SubmitButton>
+            <SubmitButton type="submit">수정하기</SubmitButton>
           </form>
         </RegisterContainer>
       </CenteredContainer>
@@ -223,7 +248,6 @@ const H1 = styled.h1`
   font-weight: bold;
   margin-bottom: 20px;
   position: relative;
-
   &::after {
     content: '';
     display: block;
@@ -232,7 +256,6 @@ const H1 = styled.h1`
     background-color: #d9d9d9;
     margin-top: 10px;
   }
-
   @media (max-width: 767px) {
     font-size: 28px;
     margin-bottom: 16px;
@@ -244,7 +267,6 @@ const CenteredContainer = styled.div`
   justify-content: center;
   align-items: center;
   width: 100%;
-
   @media (max-width: 767px) {
     padding: 0 16px;
   }
@@ -257,7 +279,6 @@ const RegisterContainer = styled.div`
   padding: 20px;
   box-shadow: 0px 4px 10px #00000019;
   margin: auto;
-
   @media (max-width: 767px) {
     width: 100%;
     padding: 16px;
@@ -270,7 +291,6 @@ const Category = styled.div`
   flex-direction: column;
   gap: 8px;
   margin-bottom: 20px;
-
   select {
     width: 100%;
     padding: 8px 12px;
@@ -279,12 +299,10 @@ const Category = styled.div`
     border-radius: 8px;
     background-color: white;
     cursor: pointer;
-
     &:focus {
       border-color: #6663ff;
       outline: none;
     }
-
     @media (max-width: 767px) {
       font-size: 14px;
       padding: 6px 10px;
@@ -297,7 +315,6 @@ const H3 = styled.h3`
   font-weight: 600;
   color: #333;
   margin-bottom: 10px;
-
   @media (max-width: 767px) {
     font-size: 16px;
     margin-bottom: 8px;
@@ -311,7 +328,6 @@ const Input = styled.input`
   font-size: 16px;
   border: 1px solid #ccc;
   border-radius: 8px;
-
   @media (max-width: 767px) {
     width: 100%;
   }
@@ -325,7 +341,6 @@ const Textarea = styled.textarea`
   border: 1px solid #ccc;
   border-radius: 8px;
   resize: none;
-
   @media (max-width: 767px) {
     width: 100%;
   }
@@ -343,7 +358,6 @@ const ImagePreview = styled.img`
   height: 170px;
   border-radius: 5px;
   object-fit: cover;
-
   @media (max-width: 767px) {
     width: 100px;
     height: 100px;
@@ -365,14 +379,13 @@ const StatusButton = styled.button`
   font-size: 16px;
   border: 1px solid #ccc;
   border-radius: 8px;
-  background: white;
+  background: ${(props) => (props.active ? '#6663ff' : 'white')};
+  color: ${(props) => (props.active ? 'white' : 'black')};
   cursor: pointer;
   margin-right: 10px;
-
   &:last-child {
     margin-right: 0;
   }
-
   @media (max-width: 767px) {
     font-size: 14px;
     padding: 8px 16px;
@@ -389,11 +402,9 @@ const SubmitButton = styled.button`
   font-size: 18px;
   margin-top: 20px;
   cursor: pointer;
-
   &:hover {
     background-color: #6663ff;
   }
-
   @media (max-width: 767px) {
     font-size: 16px;
     padding: 12px 0;

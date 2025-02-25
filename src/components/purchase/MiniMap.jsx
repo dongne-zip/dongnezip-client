@@ -1,74 +1,55 @@
-import { useEffect, useState } from 'react';
-import { useSelector } from 'react-redux';
-import axios from 'axios';
+import { useEffect, useRef } from 'react';
+import styled from 'styled-components';
 
-const MiniMap = () => {
-  const [markers, setMarkers] = useState([]);
-  const [selectedInfo, setSelectedInfo] = useState(null);
+export default function MiniMap({ lat, lng, placeName }) {
+  const containerRef = useRef(null);
 
   useEffect(() => {
-    const fetchMarkers = async () => {
-      try {
-        const response = await axios.get('/api/map/get-markers');
-        if (response.data.success) {
-          setMarkers(response.data.markers);
-        }
-      } catch (error) {
-        console.error('마커 데이터를 가져오는 중 오류 발생:', error);
+    if (!lat || !lng) return;
+
+    const loadMap = () => {
+      const container = containerRef.current;
+      const options = {
+        center: new window.kakao.maps.LatLng(lat, lng),
+        level: 3,
+      };
+      const map = new window.kakao.maps.Map(container, options);
+
+      const markerPosition = new window.kakao.maps.LatLng(lat, lng);
+      const marker = new window.kakao.maps.Marker({
+        position: markerPosition,
+        map: map,
+      });
+
+      // 정보창에 장소 이름 표시 (placeName이 있을 경우)
+      if (placeName) {
+        const infowindow = new window.kakao.maps.InfoWindow({
+          content: `<div style="padding:5px;">${placeName}</div>`,
+        });
+        infowindow.open(map, marker);
       }
     };
 
-    fetchMarkers();
+    if (!window.kakao) {
+      const script = document.createElement('script');
+      const appKey = process.env.REACT_APP_KAKAOMAP_APPKEY;
+      script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${appKey}&autoload=false`;
+      script.async = true;
+      document.head.appendChild(script);
+      script.onload = () => {
+        window.kakao.maps.load(loadMap);
+      };
+    } else {
+      window.kakao.maps.load(loadMap);
+    }
+  }, [lat, lng, placeName]);
 
-    const script = document.createElement('script');
-    script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=7cf2cd1efa95313a520efbf5c739fb2e&libraries=services`;
-    script.async = true;
-    script.onload = () => {
-      window.kakao.maps.load(() => {
-        const mapContainer = document.getElementById('miniMap');
-        const mapOption = {
-          center: new window.kakao.maps.LatLng(37.5665, 126.978),
-          level: 3,
-        };
-        const map = new window.kakao.maps.Map(mapContainer, mapOption);
+  return <Container ref={containerRef} />;
+}
 
-        markers.forEach(({ lat, lng, info }) => {
-          const marker = new window.kakao.maps.Marker({
-            position: new window.kakao.maps.LatLng(lat, lng),
-            map,
-          });
-
-          const infowindow = new window.kakao.maps.InfoWindow({
-            content: `<div style='padding:5px;'>${info}</div>`,
-          });
-
-          window.kakao.maps.event.addListener(marker, 'click', () => {
-            infowindow.open(map, marker);
-            setSelectedInfo(info);
-          });
-        });
-      });
-    };
-    document.head.appendChild(script);
-  }, [markers]);
-
-  return (
-    <div>
-      <div id="miniMap" style={{ width: '100%', height: '300px' }}></div>
-      {selectedInfo && (
-        <div
-          style={{
-            marginTop: '10px',
-            padding: '10px',
-            border: '1px solid #ddd',
-            borderRadius: '5px',
-          }}
-        >
-          <strong>주소 상세 정보:</strong> {selectedInfo}
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default MiniMap;
+const Container = styled.div`
+  width: 100%;
+  height: 300px;
+  border-radius: 8px;
+  overflow: hidden;
+`;

@@ -6,21 +6,20 @@ import { useSelector } from 'react-redux';
 import * as S from '../../styles/mixins';
 import styled from 'styled-components';
 import { updateUser } from '../../store/types';
-import { loginUser } from '../../store/types';
+import { loginUser, logoutUser } from '../../store/types';
 
 const API = process.env.REACT_APP_API_SERVER;
 axios.defaults.withCredentials = true;
 
 export default function EditProfile() {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const user = useSelector((state) => state.isLogin.user);
   const isLoggedIn = useSelector((state) => state.isLogin.isLoggedIn);
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
 
-  const [nickname1, setNicknameState] = useState(user.nickname || '');
+  const [nickname1, setNicknameState] = useState(user.nickname);
   const [nicknameChanged, setNicknameChanged] = useState(false);
   const [nicknameError, setNicknameError] = useState(null);
-
   const [updatedNickname, setUpdatedNickname] = useState(nickname1); // 변경된 닉네임 상태
 
   const [currentPassword, setCurrentPassword] = useState('');
@@ -30,7 +29,9 @@ export default function EditProfile() {
   const [isValidPassword, setIsValidPassword] = useState(null);
 
   const [profileData, setProfileData] = useState({ ...user, profileImg: '' }); // 프로필 데이터
+  const [previewImage, setPreviewImage] = useState(null); // 미리보기 이미지 상태
 
+  // 새로고침 후 로그인 상태를 유지
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem('user'));
     if (storedUser) {
@@ -50,12 +51,12 @@ export default function EditProfile() {
     const newNickname = e.target.value;
     setNicknameState(newNickname);
 
-    const nicknameRegex = /^[a-zA-Z0-9가-힣]{4,20}$/;
+    const nicknameRegex = /^[a-zA-Z0-9가-힣]{3,10}$/;
     if (nicknameRegex.test(newNickname)) {
       setNicknameError(null);
       setNicknameChanged(true);
     } else {
-      setNicknameError('닉네임은 4~20자, 영문, 숫자, 한글만 가능합니다.');
+      setNicknameError('닉네임은 3~10자, 영문, 숫자, 한글만 가능합니다.');
       setNicknameChanged(false);
     }
   };
@@ -71,6 +72,7 @@ export default function EditProfile() {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      setPreviewImage(URL.createObjectURL(file));
       setProfileData({
         ...profileData,
         profileImg: file,
@@ -117,17 +119,25 @@ export default function EditProfile() {
             headers: { 'Content-Type': 'multipart/form-data' },
           },
         );
-
-        if (response.status === 200) {
+        console.log(response);
+        if (response.data.result) {
           alert('회원정보가 성공적으로 업데이트되었습니다.');
           setUpdatedNickname(nickname1); // 닉네임이 수정되면 상태 업데이트
           if (updateData.has('nickname')) {
-            dispatch(updateUser({ ...user, nickname: nickname1 }));
+            setUpdatedNickname(nickname1);
+            console.log('nickkk', nickname1);
+            const updatedUser = { ...user, nickname: nickname1 };
+            dispatch(updateUser(updatedUser)); // Redux 상태 업데이트
+
+            localStorage.setItem('user', JSON.stringify(updatedUser)); // localStorag
           }
           if (updateData.has('profileImg')) {
-            dispatch(
-              updateUser({ ...user, profileImg: response.data.profileImg }),
-            );
+            const updatedProfileImgUser = {
+              ...user,
+              profileImg: response.data.profileImg,
+            };
+            dispatch(updateUser(updatedProfileImgUser)); // Redux 상태 업데이트
+            localStorage.setItem('user', JSON.stringify(updatedProfileImgUser));
           }
           navigate('/mypage');
         } else {
@@ -141,6 +151,31 @@ export default function EditProfile() {
       alert('변경 사항이 없습니다.');
     }
   };
+  const handleDeleteUser = async () => {
+    if (window.confirm('정말 회원 탈퇴를 하시겠습니까?')) {
+      try {
+        // 회원 탈퇴 요청
+        const response = await axios.delete(`${API}/user/deleteUser`, {});
+        console.log(response);
+        // 서버에서 성공적인 응답이 왔을 때
+        if (response.data.result) {
+          alert('회원탈퇴가 완료되었습니다.');
+
+          // 로그아웃 처리 (localStorage 및 Redux 상태 초기화)
+          localStorage.removeItem('user');
+          dispatch(logoutUser()); // logoutUser 액션을 만들어서 Redux 상태 초기화 (로그인 상태 해제)
+
+          // 로그인 페이지로 리디렉션
+          navigate('/login');
+        } else {
+          alert('회원탈퇴 실패. 다시 시도해주세요.');
+        }
+      } catch (error) {
+        console.error('회원탈퇴 중 오류 발생:', error);
+        alert('회원탈퇴에 실패했습니다. 다시 시도해주세요.');
+      }
+    }
+  };
 
   if (!isLoggedIn) {
     return <div>로그인 후에 이용할 수 있습니다.</div>;
@@ -150,6 +185,11 @@ export default function EditProfile() {
     <ExtendedMainLayout>
       <ProfileContainer>
         <H3>회원정보 수정</H3>
+
+        {/* 선택된 이미지 미리보기 */}
+        {previewImage && (
+          <PreviewImage src={previewImage} alt="프로필 이미지 미리보기" />
+        )}
 
         {/* 프로필 사진 수정 */}
         <Label htmlFor="profilePic">프로필 이미지: </Label>
@@ -212,6 +252,7 @@ export default function EditProfile() {
         >
           수정
         </Button>
+        <DeleteButton onClick={handleDeleteUser}>회원 탈퇴</DeleteButton>
       </ProfileContainer>
     </ExtendedMainLayout>
   );
@@ -289,4 +330,33 @@ const ErrorText = styled.p`
   color: red;
   font-size: 12px;
   margin: 0;
+`;
+
+const PreviewImage = styled.img`
+  margin-top: 10px;
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 1px solid #ccc;
+`;
+const DeleteButton = styled.button`
+  width: 100%;
+  padding: 10px;
+  margin-top: 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background-color: #ff4d4f; /* 탈퇴 버튼은 빨간색으로 강조 */
+  color: white;
+  font-weight: bold;
+  &:hover {
+    background-color: #ff7875; /* 마우스 오버 시 색상 변화 */
+  }
+  &:focus {
+    outline: none;
+  }
+  @media (max-width: 767px) {
+    padding: 8px;
+  }
 `;

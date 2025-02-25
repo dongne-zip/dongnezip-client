@@ -196,7 +196,7 @@ export default function ProductDetail() {
         onNavigate={() => navigate('/purchase')}
       />
 
-      <Container>
+      <ProductInfoContainer>
         <ProductImgSection>
           <ItemImgWrapper>
             <img
@@ -246,10 +246,43 @@ export default function ProductDetail() {
               )}
             </TradeStatus>
           )}
+          {/* 767이하 모바일에서는 판매자 정보가 상품 상세 정보 아래로 이동 */}
+          <SellerInfoWrapperMobile>
+            <h2>판매자 정보</h2>
+            <div>
+              <SellerProfile>
+                <img
+                  src={
+                    product.user.profileImg || `${s3}/images/dummy/user-img.png`
+                  }
+                  alt={`${product.user.nickname || '판매자'}님의 프로필 이미지`}
+                />
+              </SellerProfile>
+              <SellerText>
+                <SellerName>
+                  {product.user.nickname || '판매자 닉네임 식별 불가'}
+                </SellerName>
+                <SellerLocation>{product.Region.district}</SellerLocation>
+              </SellerText>
+            </div>
+          </SellerInfoWrapperMobile>
         </ProductInfoSection>
+      </ProductInfoContainer>
 
+      {/* ----------- 거래 희망 장소 -----------*/}
+      <ProductDetailContainer>
+        {/* 거래 희망 장소 텍스트 */}
+        <TradePlaceSection>
+          <div>
+            <h2> 거래 희망 장소 </h2>
+          </div>
+          <div>
+            {product.map.address} {product.map.placeName}
+          </div>
+        </TradePlaceSection>
+        {/* 지도 */}
         <MiniMap />
-      </Container>
+      </ProductDetailContainer>
     </S.MainLayout>
   );
 }
@@ -305,9 +338,26 @@ const DropdownItem = styled.div`
 
 /* -------------- 섹션 포함하는 컨테이너 --------------*/
 
-const Container = styled.div`
-  display: flex;
+const ProductInfoContainer = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 40px;
+
+  @media (max-width: 767px) {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+`;
+
+const ProductDetailContainer = styled.div`
+  margin-top: 40px;
+  padding: 20px;
+  border-top: 1px solid var(--color-lightgray);
+
+  @media (max-width: 767px) {
+    border: none;
+    margin-top: 0px;
+  }
 `;
 
 /* -------------- 상품 이미지 및 판매자 정보 섹션 --------------*/
@@ -332,6 +382,28 @@ const SellerInfoWrapper = styled.div`
   gap: 10px;
   margin-top: 20px;
   margin-left: 20px;
+
+  @media (max-width: 767px) {
+    display: none;
+  }
+`;
+
+const SellerInfoWrapperMobile = styled.div`
+  display: none;
+  @media (max-width: 767px) {
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid var(--color-lightgray);
+    padding: 20px;
+    margin-top: 20px;
+
+    > div {
+      display: flex;
+      border: 1px solid var(--color-lightgray);
+      padding: 20px;
+      border-radius: 10px;
+    }
+  }
 `;
 
 const SellerProfile = styled.div`
@@ -402,6 +474,12 @@ const ProductDescription = styled.div`
   color: #444;
   line-height: 1.5;
   margin-bottom: 20px;
+  height: 200px;
+
+  @media (max-width: 767px) {
+    height: 100px;
+    overflow-y: scroll;
+  }
 `;
 
 /* 버튼 */
@@ -458,4 +536,12 @@ const TradeButton = styled(ButtonBase)`
   &:hover {
     background: #f8f8f8;
   }
+`;
+
+/* -------------- 거래 희망 장소 --------------*/
+const TradePlaceSection = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: row;
 `;

@@ -24,19 +24,19 @@ export default function ProductDetail() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [userId, setUserId] = useState(null);
-  const [userNickname, setUserNickname] = useState(null);
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false); //삭제 확인
   const [isAlertOpen, setIsAlertOpen] = useState(false); //삭제 완료 알림
-  const [isDropdown, setDropdown] = useState(false);
+  const [isDropdown, setDropdown] = useState(false); //판매자 전용 드롭다운 메뉴(편집, 삭제 권한)
   const chatRooms = useSelector((state) => state.chat.chatRooms);
 
   useEffect(() => {
     const fetchProductDetail = async () => {
       try {
         const response = await axios.get(`${API}/item/${id}`);
+        console.log('상품상세 조회', response.data.data);
         setProduct(response.data.data);
       } catch (err) {
         setError('상품 정보를 불러오는 중 오류가 발생했습니다.');
@@ -56,7 +56,6 @@ export default function ProductDetail() {
       try {
         const decodeToken = JSON.parse(token);
         setUserId(decodeToken.id); //로그인한 사용자의 ID 설정
-        setUserNickname(decodeToken.nickname); //닉네임
       } catch (err) {
         console.error(err);
       }
@@ -197,18 +196,27 @@ export default function ProductDetail() {
         onNavigate={() => navigate('/purchase')}
       />
 
-      <Container>
+      <ProductInfoContainer>
         <ProductImgSection>
           <ItemImgWrapper>
             <img
-              src={product.imgUrls || `${s3}/images/dummy/product-img.png`}
+              src={product.images[0] || `${s3}/images/dummy/product-img.png`}
               alt={product.title}
             />
           </ItemImgWrapper>
           <SellerInfoWrapper>
-            <SellerProfile />
+            <SellerProfile>
+              <img
+                src={
+                  product.user.profileImg || `${s3}/images/dummy/user-img.png`
+                }
+                alt={`${product.user.nickname || '판매자'}님의 프로필 이미지`}
+              />
+            </SellerProfile>
             <SellerText>
-              <SellerName>{userNickname}</SellerName>
+              <SellerName>
+                {product.user.nickname || '판매자 닉네임 식별 불가'}
+              </SellerName>
               <SellerLocation>{product.Region.district}</SellerLocation>
             </SellerText>
           </SellerInfoWrapper>
@@ -228,14 +236,53 @@ export default function ProductDetail() {
             <FavoriteButton>찜하기</FavoriteButton>
           </ButtonWrapper>
 
-          {/* 거래 상태 표시 */}
-          <TradeStatus>
-            거래상태 <span>(판매중 / 완료)</span>
-          </TradeStatus>
+          {/* 거래 상태 표시 (판매자 본인만 클릭 가능) */}
+          {isOwner && (
+            <TradeStatus>
+              {product.isOnwer === 'false' ? (
+                <TradeButton>판매중</TradeButton>
+              ) : (
+                <TradeButton>거래 완료</TradeButton>
+              )}
+            </TradeStatus>
+          )}
+          {/* 767이하 모바일에서는 판매자 정보가 상품 상세 정보 아래로 이동 */}
+          <SellerInfoWrapperMobile>
+            <h2>판매자 정보</h2>
+            <div>
+              <SellerProfile>
+                <img
+                  src={
+                    product.user.profileImg || `${s3}/images/dummy/user-img.png`
+                  }
+                  alt={`${product.user.nickname || '판매자'}님의 프로필 이미지`}
+                />
+              </SellerProfile>
+              <SellerText>
+                <SellerName>
+                  {product.user.nickname || '판매자 닉네임 식별 불가'}
+                </SellerName>
+                <SellerLocation>{product.Region.district}</SellerLocation>
+              </SellerText>
+            </div>
+          </SellerInfoWrapperMobile>
         </ProductInfoSection>
+      </ProductInfoContainer>
 
+      {/* ----------- 거래 희망 장소 -----------*/}
+      <ProductDetailContainer>
+        {/* 거래 희망 장소 텍스트 */}
+        <TradePlaceSection>
+          <div>
+            <h2> 거래 희망 장소 </h2>
+          </div>
+          <div>
+            {product.map.address} {product.map.placeName}
+          </div>
+        </TradePlaceSection>
+        {/* 지도 */}
         <MiniMap />
-      </Container>
+      </ProductDetailContainer>
     </S.MainLayout>
   );
 }
@@ -291,9 +338,26 @@ const DropdownItem = styled.div`
 
 /* -------------- 섹션 포함하는 컨테이너 --------------*/
 
-const Container = styled.div`
-  display: flex;
+const ProductInfoContainer = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 40px;
+
+  @media (max-width: 767px) {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+`;
+
+const ProductDetailContainer = styled.div`
+  margin-top: 40px;
+  padding: 20px;
+  border-top: 1px solid var(--color-lightgray);
+
+  @media (max-width: 767px) {
+    border: none;
+    margin-top: 0px;
+  }
 `;
 
 /* -------------- 상품 이미지 및 판매자 정보 섹션 --------------*/
@@ -318,14 +382,47 @@ const SellerInfoWrapper = styled.div`
   gap: 10px;
   margin-top: 20px;
   margin-left: 20px;
+
+  @media (max-width: 767px) {
+    display: none;
+  }
+`;
+
+const SellerInfoWrapperMobile = styled.div`
+  display: none;
+  @media (max-width: 767px) {
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid var(--color-lightgray);
+    padding: 20px;
+    margin-top: 20px;
+
+    > div {
+      display: flex;
+      border: 1px solid var(--color-lightgray);
+      padding: 20px;
+      border-radius: 10px;
+    }
+  }
 `;
 
 const SellerProfile = styled.div`
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: #ddd;
-  margin-right: 10px;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: 4px;
+
+  img {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover; //div크기에 맞추고, 넘치는 부분은 잘라줌
+    object-position: center; //이미지의 중심을 div 중앙에 배치
+  }
 `;
 
 const SellerText = styled.div`
@@ -377,6 +474,12 @@ const ProductDescription = styled.div`
   color: #444;
   line-height: 1.5;
   margin-bottom: 20px;
+  height: 200px;
+
+  @media (max-width: 767px) {
+    height: 100px;
+    overflow-y: scroll;
+  }
 `;
 
 /* 버튼 */
@@ -385,33 +488,30 @@ const ButtonWrapper = styled.div`
   gap: 10px;
 `;
 
-const ChatButton = styled.button`
+const ButtonBase = styled.button`
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 5px;
-  background: #6c63ff;
-  color: white;
   font-size: 16px;
   padding: 10px 15px;
   border-radius: 5px;
-  border: none;
-  cursor: pointer;
+`;
+
+const ChatButton = styled(ButtonBase)`
+  flex-grow: 1;
+  background: #6c63ff;
+  color: white;
 
   &:hover {
     background: #564fc4;
   }
 `;
 
-const FavoriteButton = styled.button`
-  display: flex;
-  align-items: center;
-  gap: 5px;
+const FavoriteButton = styled(ButtonBase)`
+  flex-grow: 1;
   background: white;
   border: 1px solid #ddd;
-  font-size: 16px;
-  padding: 10px 15px;
-  border-radius: 5px;
-  cursor: pointer;
 
   &:hover {
     background: #f8f8f8;
@@ -420,10 +520,28 @@ const FavoriteButton = styled.button`
 
 /* 거래 상태 */
 const TradeStatus = styled.div`
+  display: flex;
   margin-top: 20px;
   font-size: 16px;
   color: gray;
   span {
     font-weight: bold;
   }
+`;
+
+const TradeButton = styled(ButtonBase)`
+  border: 1px solid var(--color-lightgray);
+  flex-grow: 1;
+
+  &:hover {
+    background: #f8f8f8;
+  }
+`;
+
+/* -------------- 거래 희망 장소 --------------*/
+const TradePlaceSection = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: row;
 `;

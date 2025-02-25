@@ -9,18 +9,28 @@ import { chat, setActiveRoom } from '../../store/modules/chatReducer';
 // import { jwtDecode } from 'jwt-decode';
 // import { io } from 'socket.io-client';
 import MiniMap from '../../components/purchase/MiniMap';
+import { deleteItemDetail } from '../../utils/api';
+import ModalDelete from '../../components/purchase/ModalDelete';
+import ModalAlert from '../../components/common/ModalAlert';
 
 const s3 = process.env.REACT_APP_S3;
 const API = process.env.REACT_APP_API_SERVER;
 
 export default function ProductDetail() {
+  // redux
+  // const isLoggedIn = useSelector((state) => state.isLogin.isLoggedIn);
+
   const { id } = useParams();
   const dispatch = useDispatch();
-  const [userId, setUserId] = useState(null);
   const navigate = useNavigate();
+  const [userId, setUserId] = useState(null);
+  const [userNickname, setUserNickname] = useState(null);
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false); //삭제 확인
+  const [isAlertOpen, setIsAlertOpen] = useState(false); //삭제 완료 알림
+  const [isDropdown, setDropdown] = useState(false);
   const chatRooms = useSelector((state) => state.chat.chatRooms);
 
   useEffect(() => {
@@ -38,40 +48,22 @@ export default function ProductDetail() {
     fetchProductDetail();
   }, [id]);
 
+  // ---------- 로그인된 사용자 정보 가져오기 ----------
   useEffect(() => {
     const token = localStorage.getItem('user');
     console.log(token);
     if (token) {
       try {
         const decodeToken = JSON.parse(token);
-        setUserId(decodeToken.id);
+        setUserId(decodeToken.id); //로그인한 사용자의 ID 설정
+        setUserNickname(decodeToken.nickname); //닉네임
       } catch (err) {
         console.error(err);
       }
     }
   }, []);
 
-  console.log('userid', userId);
-  if (loading) {
-    return (
-      <S.MainLayout>
-        <DotLottieReact
-          src="https://lottie.host/31cbdf7f-72b9-4a9c-ac6d-c8e70c89cf34/eJQATUqvmn.lottie"
-          loop
-          autoplay
-        />
-      </S.MainLayout>
-    );
-  }
-
-  if (error || !product) {
-    return (
-      <S.MainLayout>
-        <h1>상품을 찾을 수 없습니다 🥲</h1>
-      </S.MainLayout>
-    );
-  }
-
+  // 로딩 애니메이션
   if (loading) {
     return (
       <S.MainLayout>
@@ -140,11 +132,70 @@ export default function ProductDetail() {
     }
   };
 
+  // ---------- 상품 등록한 사용자인지 확인 ----------
+  const isOwner = userId === product?.userId;
+
+  // 삭제 요청
+  const handleDeleteProduct = async () => {
+    try {
+      await deleteItemDetail(id);
+      setIsModalOpen(false);
+      setIsAlertOpen(true);
+    } catch (error) {
+      console.error('삭제 실패');
+    }
+  };
+
   return (
     <S.MainLayout>
-      <Breadcrumb>
-        구매 &gt; {product.Category.category} &gt; {product.title}
-      </Breadcrumb>
+      <BreadcrumbContainer>
+        <Breadcrumb onClick={() => navigate(-1)}>
+          구매 &gt; {product.Category.category} &gt; {product.title}
+        </Breadcrumb>
+
+        {/* 판매자 본인만 볼수 있는 드롭다운 버튼 */}
+        {isOwner && (
+          <>
+            <MoreButton onClick={() => setDropdown((prev) => !prev)}>
+              <span className="material-symbols-outlined">more_vert</span>
+            </MoreButton>
+
+            {/* 드롭다운 메뉴 : 편집 & 삭제 버튼 표시 */}
+            {isDropdown && (
+              <DropdownMenu>
+                <DropdownItem>
+                  <button>
+                    <span className="material-symbols-outlined">edit</span>
+                  </button>
+                  <div>편집</div>
+                </DropdownItem>
+
+                <DropdownItem onClick={() => setIsModalOpen(true)}>
+                  <button onClick={() => setIsModalOpen(true)}>
+                    <span className="material-symbols-outlined">delete</span>
+                  </button>
+                  <div>삭제</div>
+                </DropdownItem>
+              </DropdownMenu>
+            )}
+          </>
+        )}
+      </BreadcrumbContainer>
+
+      {/* 모달창 (삭제) */}
+      <ModalDelete
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onDelete={handleDeleteProduct}
+      />
+
+      {/* 모달창 (삭제 완료 알림) */}
+      <ModalAlert
+        isOpen={isAlertOpen}
+        content={'삭제가 완료되었습니다.'}
+        onClose={() => setIsAlertOpen(false)}
+        onNavigate={() => navigate('/purchase')}
+      />
 
       <Container>
         <ProductImgSection>
@@ -157,17 +208,18 @@ export default function ProductDetail() {
           <SellerInfoWrapper>
             <SellerProfile />
             <SellerText>
-              <SellerName>판매자 {product.userId}</SellerName>
+              <SellerName>{userNickname}</SellerName>
               <SellerLocation>{product.Region.district}</SellerLocation>
             </SellerText>
           </SellerInfoWrapper>
         </ProductImgSection>
-        {/* 상품 상세 정보 섹션 */}
+
+        {/* ----------- 상품 상세 정보 섹션 -----------*/}
         <ProductInfoSection>
+          {/* 상품 상세 */}
           <ProductTitle>{product.title}</ProductTitle>
           <ProductPrice>{product.price.toLocaleString()} 원</ProductPrice>
           <ProductStatus>상품 상태 : {product.itemStatus}</ProductStatus>
-
           <ProductDescription>{product.detail}</ProductDescription>
 
           {/* 버튼 영역 */}
@@ -189,10 +241,52 @@ export default function ProductDetail() {
 }
 
 /* -------------- 현재 페이지 위치 --------------*/
-const Breadcrumb = styled.div`
+const BreadcrumbContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+`;
+
+const MoreButton = styled.button`
+  color: black;
+`;
+const Breadcrumb = styled.button`
   font-size: 14px;
   color: gray;
   margin-bottom: 20px;
+`;
+
+const DropdownMenu = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border: 1px solid var(--color-lightgray);
+  position: absolute;
+  top: 8px;
+  right: 34px;
+  background: var(--color-white);
+  padding: 4px;
+`;
+
+const DropdownItem = styled.div`
+  display: flex;
+  flex-direction: row;
+  color: gray;
+  align-items: center;
+  font-size: 14px;
+
+  border-radius: 5px;
+  padding: 4px;
+  height: 24px;
+
+  &:hover {
+    background: #f4f6f8;
+  }
+  span {
+    font-size: 12px;
+  }
 `;
 
 /* -------------- 섹션 포함하는 컨테이너 --------------*/

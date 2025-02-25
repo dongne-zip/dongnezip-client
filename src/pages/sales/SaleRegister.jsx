@@ -14,9 +14,7 @@ import * as S from '../../styles/mixins';
 import styled from 'styled-components';
 
 const API = process.env.REACT_APP_API_SERVER;
-
-axios.defaults.withCredentials = true;
-
+axios.defaults.withCredentials = true; // 모든 요청에 쿠키 포함
 export default function SaleRegister() {
   const dispatch = useDispatch();
   const { categoryId, title, itemStatus, price, detail } = useSelector(
@@ -99,7 +97,7 @@ export default function SaleRegister() {
     formData.append('detail', detail);
     formData.append('latitude', storedMarkers[0].lat);
     formData.append('longitude', storedMarkers[0].lng);
-    formData.append('locationInfo', storedMarkers[0].info);
+    formData.append('placeName', storedMarkers[0].info);
 
     console.log(formData);
     try {

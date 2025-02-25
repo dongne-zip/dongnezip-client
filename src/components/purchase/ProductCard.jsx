@@ -5,6 +5,9 @@ import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHeart as regularHeart } from '@fortawesome/free-regular-svg-icons'; // 빈 하트
 import { faHeart as solidHeart } from '@fortawesome/free-solid-svg-icons'; // 채워진 하트
+import { useSelector } from 'react-redux';
+import ModalLogin from './ModalLogin';
+import { useNavigate } from 'react-router-dom';
 
 // import { seoulDistricts } from '../../data/dummyProduct';
 
@@ -12,16 +15,28 @@ const s3 = process.env.REACT_APP_S3;
 const API = process.env.REACT_APP_API_SERVER;
 
 export default function ProductCard({ product }) {
+  const navigate = useNavigate();
+  // redux 상태
+  const isLoggedIn = useSelector((state) => state.isLogin.isLoggedIn);
+
   const [liked, setLiked] = useState(product.isFavorite);
   const [likeCount, setLikeCount] = useState(product.favCount);
   const [loading, setLoading] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   // 지역명
   const regionName = product.Region
     ? `${product.Region.district}`
     : '알 수 없음';
 
-  // 서버에서 좋아요 상태 가져오기
+  // 상품 상세 페이지 이동 (모달이 열려있을 때는 이동 X)
+  const handleCardClick = () => {
+    if (!isLoginModalOpen) {
+      navigate(`/purchase/product-detail/${product.id}`);
+    }
+  };
+
+  // 좋아요 상태 가져오기
   const fetchLikedStatus = async () => {
     try {
       setLoading(true);
@@ -53,13 +68,18 @@ export default function ProductCard({ product }) {
     fetchLikedStatus();
   }, [product.id]);
 
-  // 좋아요
+  // 좋아요 버튼
   const handleLikeClick = async (e) => {
     e.preventDefault(); // 부모 요소 링크 이동 방지
 
     if (loading) return; // 중복 요청 방지
-    setLoading(true);
 
+    if (!isLoggedIn) {
+      setIsLoginModalOpen(true);
+      return;
+    }
+
+    setLoading(true);
     const newLikedState = !liked;
 
     // (todo) 콘솔 에러 수정하기
@@ -90,28 +110,46 @@ export default function ProductCard({ product }) {
   };
 
   return (
-    <ItemContainer>
-      <ItemImgWrapper>
-        <img
-          src={product.imgUrl || `${s3}/images/dummy/product-img.png`}
-          alt={product.title}
-        />
-      </ItemImgWrapper>
-      <ItemInfoWrapper>
-        <ItemTitle>
-          <div>{product.title}</div>
-          <LikeButton onClick={handleLikeClick} disabled={loading}>
-            <FontAwesomeIcon
-              icon={liked ? solidHeart : regularHeart}
-              style={{ color: liked ? 'red' : 'black' }}
-            />
-          </LikeButton>
-          {loading ? null : <LikeCount liked={liked}>{likeCount}</LikeCount>}
-        </ItemTitle>
-        <ItemPrice>{product.price.toLocaleString()}원</ItemPrice>
-        <ItemPurchasePlace>{regionName}</ItemPurchasePlace>
-      </ItemInfoWrapper>
-    </ItemContainer>
+    <>
+      <ItemContainer onClick={handleCardClick}>
+        <ItemImgWrapper>
+          <img
+            src={product.imgUrl || `${s3}/images/dummy/product-img.png`}
+            alt={product.title}
+          />
+        </ItemImgWrapper>
+        <ItemInfoWrapper>
+          <ItemTitle>
+            <div>{product.title}</div>
+            <LikeButton
+              onClick={(e) => {
+                e.stopPropagation();
+                handleLikeClick(e);
+              }}
+              disabled={loading}
+            >
+              <FontAwesomeIcon
+                icon={liked ? solidHeart : regularHeart}
+                style={{ color: liked ? 'red' : 'black' }}
+              />
+            </LikeButton>
+            {loading ? null : <LikeCount liked={liked}>{likeCount}</LikeCount>}
+          </ItemTitle>
+          <ItemPrice>{product.price.toLocaleString()}원</ItemPrice>
+          <ItemPurchasePlace>{regionName}</ItemPurchasePlace>
+        </ItemInfoWrapper>
+      </ItemContainer>
+
+      {/* 로그인 모달창 */}
+      <ModalLogin
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        onNavigate={() => {
+          setIsLoginModalOpen(false);
+          navigate('/login', { replace: true });
+        }}
+      />
+    </>
   );
 }
 

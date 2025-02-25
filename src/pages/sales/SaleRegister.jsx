@@ -15,6 +15,8 @@ import styled from 'styled-components';
 
 const API = process.env.REACT_APP_API_SERVER;
 
+axios.defaults.withCredentials = true;
+
 export default function SaleRegister() {
   const dispatch = useDispatch();
   const { categoryId, title, itemStatus, price, detail } = useSelector(

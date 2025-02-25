@@ -52,7 +52,11 @@ export default function Login() {
   };
 
   const handleKakaoLogin = () => {
-    navigate(`${API}/user/login/kakao`);
+    window.location.href = `${API}/user/login/kakao`;
+  };
+
+  const handleGoogleLogin = () => {
+    window.location.href = `${API}/user/login/google`;
   };
 
   return (
@@ -95,6 +99,13 @@ export default function Login() {
           </Button>
           <br />
           <br />
+          <Button
+            type="button"
+            onClick={handleGoogleLogin}
+            className="googleLogin"
+          >
+            구글 로그인하기
+          </Button>
           <Notice>
             계정이 없나요?
             <Link to="/join" className="registerLink">
@@ -184,6 +195,14 @@ const Button = styled.button`
     color: black;
     &:hover {
       background-color: #ebe6b2;
+    }
+  }
+  &.googleLogin {
+    background-color: white;
+    color: black;
+    border: 1px solid black;
+    &:hover {
+      background-color: #fee;
     }
   }
   @media (max-width: 767px) {

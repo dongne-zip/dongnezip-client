@@ -1,57 +1,41 @@
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { useState } from 'react';
-// import { useEffect } from 'react';
+import { useEffect } from 'react';
 import axios from 'axios';
+import { loginUser } from '../../../store/types';
 
 const API = process.env.REACT_APP_API_SERVER;
 axios.defaults.withCredentials = true;
 
 export default function ProfilePart() {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const user = useSelector((state) => state.isLogin.user);
   const isLoggedIn = useSelector((state) => state.isLogin.isLoggedIn);
-  const [profileData, setProfileData] = useState(user);
-  const navigate = useNavigate();
 
-  // 로그인 상태일 때만 프로필 정보 요청
-  // useEffect(() => {
-  //   if (isLoggedIn) {
-  //     // 서버로부터 유저 정보를 가져오는 API 호출
-  //     const fetchUserData = async () => {
-  //       try {
-  //         const response = await axios.get(`${API}/user/mypage`, {
-  //           withCredentials: true,
-  //         });
-  //         if (response.status === 200) {
-  //           setProfileData(response.data.user); // 유저 데이터 업데이트
-  //           console.log(response.data.user);
-  //         }
-  //       } catch (error) {
-  //         console.error('유저 정보를 가져오는 데 실패했습니다.', error);
-  //       }
-  //     };
-  //     fetchUserData();
-  //   }
-  // }, [isLoggedIn]);
-  const handleFileChange = async () => {
-    // S3로 파일 업로드 하기
-    if (profileData) {
-      const formData = new FormData();
-      formData.append('profileImg', profileData);
+  // 새로고침 후 로그인 상태를 유지
+  useEffect(() => {
+    const storedUser = JSON.parse(localStorage.getItem('user'));
+    if (storedUser) {
+      dispatch(loginUser(storedUser)); // Redux 상태에 사용자 정보 저장
+    } else {
+      navigate('/login'); // 로그인되지 않으면 로그인 페이지로 리디렉션
+    }
+  }, [dispatch, navigate]);
 
-      try {
-        const response = await axios.post(`${API}/user/changeImg`, formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
-
-        setProfileData(response.data.profileImg); // 업로드 후, 파일 URL을 상태에 저장
-        console.log('파일 업로드 성공: ', response.data.fileUrl);
-      } catch (error) {
-        console.error('파일 업로드 실패: ', error);
+  // 로그아웃 처리
+  const handleLogout = async () => {
+    try {
+      const response = await axios.post(`${API}/user/logout`);
+      if (response.status === 200) {
+        localStorage.removeItem('user'); // 로컬스토리지에서 사용자 정보 제거
+        dispatch({ type: 'LOGOUT_USER' }); // Redux 상태에서 사용자 정보 제거
+        navigate('/'); // 홈으로 리디렉션
       }
+    } catch (error) {
+      console.error('로그아웃 오류:', error);
+      alert('로그아웃 중 문제가 발생했습니다. 다시 시도해주세요.');
     }
   };
 
@@ -59,32 +43,11 @@ export default function ProfilePart() {
     return <div>로그인 후에 이용할 수 있습니다.</div>;
   }
 
-  const handleLogout = async () => {
-    try {
-      const response = await axios.post(`${API}/user/logout`);
-      if (response.status === 200) {
-        localStorage.removeItem('emailAuthToken');
-
-        navigate('/');
-      }
-    } catch (error) {
-      console.error('Logout error:', error);
-      alert('로그아웃 중 문제가 발생했습니다. 다시 시도해주세요.');
-    }
-  };
-
   return (
     <ProfilePartS>
-      <ProfileImg src={profileData?.profileImg} alt="프로필 사진" />
+      <ProfileImg src={user.profilePath?.profileImg} alt="프로필 사진" />
 
-      <input
-        type="file"
-        accept="image/*"
-        id="profilePic"
-        value={user.profilePath}
-        onChange={handleFileChange}
-      />
-      <Desc>{profileData?.nickname}님, 반갑습니다</Desc>
+      <Desc>{user.nickname}님, 반갑습니다</Desc>
       <Link to="/changeInfo">
         <EditBtn>회원정보 수정</EditBtn>
       </Link>

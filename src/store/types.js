@@ -7,3 +7,7 @@ export const loginUser = (user) => ({
 export const logoutUser = () => ({
   type: 'LOGOUT_USER',
 });
+export const updateUser = (user) => ({
+  type: 'UPDATE_USER',
+  payload: user,
+});

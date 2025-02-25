@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import * as S from '../../styles/mixins';
 import styled from 'styled-components';
@@ -14,13 +14,14 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  // useEffect(() => {
-  //   const user = JSON.parse(localStorage.getItem('user'));
-  //   if (user) {
-  //     dispatch(loginUser(user)); // Dispatch the user data to Redux
-  //     navigate('/myPage'); // Redirect to myPage if already logged in
-  //   }
-  // }, [dispatch, navigate]);
+  // 새로고침 시 localStorage에서 user 정보를 가져와서 Redux 상태 초기화
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user) {
+      dispatch(loginUser(user)); // Dispatch the user data to Redux
+      navigate('/myPage'); // Redirect to myPage if already logged in
+    }
+  }, [dispatch, navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -40,10 +41,9 @@ export default function Login() {
         const { user } = response.data;
         alert('로그인 성공!');
         localStorage.setItem('user', JSON.stringify(user));
-
         //localStorage.setItem('access_token', authToken);
         dispatch(loginUser(user)); // Dispatch the user data to Redux
-        navigate('/');
+        navigate('/'); // 로그인 후 홈으로 리다이렉트
       }
       console.log(response);
     } catch (error) {
@@ -52,7 +52,7 @@ export default function Login() {
   };
 
   const handleKakaoLogin = () => {
-    navigate(`${API}/userlogin/kakao`);
+    navigate(`${API}/user/login/kakao`);
   };
 
   return (
@@ -76,7 +76,9 @@ export default function Login() {
             onChange={(e) => setPassword(e.target.value)}
           />
           <br />
-          <Link to="/findPw">비밀번호 찾기</Link>
+          <LinkPw>
+            <Link to="/findPw">비밀번호 찾기</Link>
+          </LinkPw>
           <br />
           <Button type="submit" className="emailLogin">
             로그인
@@ -124,6 +126,7 @@ const LoginContainer = styled.div`
   background-color: #fff;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
   @media (max-width: 767px) {
     max-width: 100%;
     padding: 1rem;
@@ -203,4 +206,9 @@ const Notice = styled.div`
   @media (max-width: 767px) {
     font-size: 14px;
   }
+`;
+
+const LinkPw = styled.div`
+  display: flex;
+  justify-content: flex-end;
 `;

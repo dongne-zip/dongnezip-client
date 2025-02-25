@@ -4,7 +4,7 @@ import ProfilePart from '../../components/mypage/index/ProfilePart';
 // import PurchasePart from '../../components/mypage/purchase/PurchasePart';
 // import SalePart from '../../components/mypage/sale/SalePart';
 import * as S from '../../styles/mixins';
-// import MyPage from './Purchases';
+import MyPage from './Purchases';
 
 export default function Index() {
   return (
@@ -12,7 +12,7 @@ export default function Index() {
       <h3>마이페이지</h3>
       <Container>
         <ProfilePart />
-        {/* <MyPage /> */}
+        <MyPage />
       </Container>
     </ExtendedMain>
   );

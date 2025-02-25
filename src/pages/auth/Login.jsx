@@ -51,7 +51,7 @@ export default function Login() {
   };
 
   const handleKakaoLogin = () => {
-    navigate(`${API}/userlogin/kakao`);
+    navigate(`${API}/user/login/kakao`);
   };
 
   return (

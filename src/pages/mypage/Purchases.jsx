@@ -51,7 +51,7 @@ export default function MyPage() {
                 <h4>{item.title}</h4>
                 <p>가격: {item.price}원</p>
                 <img
-                  src={item.ItemImages[0]?.imageUrl || 'fallback_image_url'}
+                  src={item.imageUrl || 'fallback_image_url'}
                   alt={item.title}
                 />
               </li>
@@ -72,7 +72,7 @@ export default function MyPage() {
                 <h4>{item.title}</h4>
                 <p>가격: {item.price}원</p>
                 <img
-                  src={item.ItemImages[0]?.imageUrl || 'fallback_image_url'}
+                  src={item.imageUrl || 'fallback_image_url'}
                   alt={item.title}
                 />
               </li>
@@ -93,7 +93,7 @@ export default function MyPage() {
                 <h4>{item.title}</h4>
                 <p>가격: {item.price}원</p>
                 <img
-                  src={item.ItemImages[0]?.imageUrl || 'fallback_image_url'}
+                  src={item.imageUrl || 'fallback_image_url'}
                   alt={item.title}
                 />
               </li>

@@ -6,6 +6,7 @@ import { useSelector } from 'react-redux';
 import * as S from '../../styles/mixins';
 import styled from 'styled-components';
 import { updateUser } from '../../store/types';
+import { loginUser } from '../../store/types';
 
 const API = process.env.REACT_APP_API_SERVER;
 axios.defaults.withCredentials = true;
@@ -29,6 +30,15 @@ export default function EditProfile() {
   const [isValidPassword, setIsValidPassword] = useState(null);
 
   const [profileData, setProfileData] = useState({ ...user, profileImg: '' }); // 프로필 데이터
+
+  useEffect(() => {
+    const storedUser = JSON.parse(localStorage.getItem('user'));
+    if (storedUser) {
+      dispatch(loginUser(storedUser)); // Redux 상태에 사용자 정보 저장
+    } else {
+      navigate('/login'); // 로그인되지 않으면 로그인 페이지로 리디렉션
+    }
+  }, [dispatch, navigate]);
 
   useEffect(() => {
     if (nicknameChanged && !nicknameError) {

@@ -55,7 +55,7 @@ export default function Index() {
   const filteredProducts = products.filter((product) => {
     return (
       (!available || product.buyerId === null) && // 거래 가능 여부: buyerId가 null인지 확인
-      (location === 0 || Number(product.Region.id) === Number(location)) && // 지역 필터
+      (location === 0 || Number(product.Region?.id) === Number(location)) && // 지역 필터
       (category === 0 || Number(product.Category.id) === Number(category)) // 카테고리 필터
     );
   });

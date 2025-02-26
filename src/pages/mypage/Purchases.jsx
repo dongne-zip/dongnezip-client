@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
 const API = process.env.REACT_APP_API_SERVER;
+const S3 = process.env.REACT_APP_S3;
 axios.defaults.withCredentials = true;
 
 export default function MyPage() {
@@ -71,7 +72,10 @@ export default function MyPage() {
                 onClick={() => handleCardClick(item.id)}
               >
                 <ItemImgWrapper>
-                  <img src={item.imageUrl} alt={item.title} />
+                  <img
+                    src={item.imageUrl || `${S3}/images/dummy/product-img.png`}
+                    alt={item.title}
+                  />
                 </ItemImgWrapper>
                 <ItemInfoWrapper>
                   <ItemTitle>{item.title}</ItemTitle>
@@ -98,7 +102,10 @@ export default function MyPage() {
                 onClick={() => handleCardClick(item.id)}
               >
                 <ItemImgWrapper>
-                  <img src={item.imageUrl} alt={item.title} />
+                  <img
+                    src={item.imageUrl || `${S3}/images/dummy/product-img.png`}
+                    alt={item.title}
+                  />
                 </ItemImgWrapper>
                 <ItemInfoWrapper>
                   <ItemTitle>{item.title}</ItemTitle>
@@ -125,7 +132,10 @@ export default function MyPage() {
                 onClick={() => handleCardClick(item.id)}
               >
                 <ItemImgWrapper>
-                  <img src={item.imageUrl} alt={item.title} />
+                  <img
+                    src={item.imageUrl || `${S3}/images/dummy/product-img.png`}
+                    alt={item.title}
+                  />
                 </ItemImgWrapper>
                 <ItemInfoWrapper>
                   <ItemTitle>{item.title}</ItemTitle>

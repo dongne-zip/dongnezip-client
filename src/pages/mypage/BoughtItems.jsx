@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
 const API = process.env.REACT_APP_API_SERVER;
+const S3 = process.env.REACT_APP_S3;
+
 axios.defaults.withCredentials = true;
 
 export default function BoughtItems() {
@@ -63,7 +65,10 @@ export default function BoughtItems() {
               onClick={() => handleCardClick(item.id)}
             >
               <Item key={item.id}>
-                <ItemImage src={item.imageUrl} alt={item.title} />
+                <ItemImage
+                  src={item.imageUrl || `${S3}/images/dummy/product-img.png`}
+                  alt={item.title}
+                />
                 <ItemInfo>
                   <div>{item.title}</div>
                   <div>{item.price}원</div>

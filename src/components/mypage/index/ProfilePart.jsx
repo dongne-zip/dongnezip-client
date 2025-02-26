@@ -6,6 +6,7 @@ import axios from 'axios';
 import { loginUser, logoutUser } from '../../../store/types';
 
 const API = process.env.REACT_APP_API_SERVER;
+const S3 = process.env.REACT_APP_S3;
 axios.defaults.withCredentials = true;
 
 export default function ProfilePart() {
@@ -81,7 +82,13 @@ export default function ProfilePart() {
 
   return (
     <ProfilePartS>
-      <ProfileImg src={user.profileImg} alt="프로필 사진" />
+      <ProfileImg>
+        <img
+          src={user.profileImg || `${S3}/images/dummy/user-img.png`}
+          alt="프로필 사진"
+        />
+      </ProfileImg>
+
       <Desc>{user.nickname}님, 반갑습니다</Desc>
       <Link to="/changeInfo">
         <EditBtn>회원정보 수정</EditBtn>
@@ -108,20 +115,22 @@ const ProfilePartS = styled.div`
   }
 `;
 
-const ProfileImg = styled.img`
-  width: 80px;
+const ProfileImg = styled.div`
+  width: 80px; /* 부모 요소의 크기를 충분히 크게 설정 */
   height: 80px;
-  border-radius: 50%;
-  background-color: #ccc;
   display: flex;
-  align-items: center;
   justify-content: center;
-  font-size: 14px;
-  color: white;
+  align-items: center;
 
+  img {
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+  }
   @media (max-width: 768px) {
-    width: 60px;
-    height: 60px;
+    width: 60px; /* 모바일 크기 */
+    height: 60px; /* 모바일 크기 */
   }
 `;
 
@@ -171,3 +180,12 @@ const LogoutBtn = styled.button`
     padding: 10px;
   }
 `;
+// const ImgContainer = styled.img`
+//   width: 100px; /* 크기를 명확하게 설정 */
+//   height: 100px; /* 크기를 명확하게 설정 */
+//   border-radius: 50%;
+//   background-color: #ccc;
+//   display: flex;
+//   object-fit: cover; /* 이미지를 원형 영역에 꽉 채우도록 설정 */
+//   object-position: center; /* 중앙 정렬 */
+// `;

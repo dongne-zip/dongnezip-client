@@ -1,23 +1,18 @@
 import { styled } from 'styled-components';
 import * as S from '../../styles/mixins';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHeart as regularHeart } from '@fortawesome/free-regular-svg-icons'; // 빈 하트
 import { faHeart as solidHeart } from '@fortawesome/free-solid-svg-icons'; // 채워진 하트
-import { useSelector } from 'react-redux';
 import ModalLogin from './ModalLogin';
 import { useNavigate } from 'react-router-dom';
-
-// import { seoulDistricts } from '../../data/dummyProduct';
 
 const s3 = process.env.REACT_APP_S3;
 const API = process.env.REACT_APP_API_SERVER;
 
 export default function ProductCard({ product }) {
   const navigate = useNavigate();
-  // redux 상태
-  const isLoggedIn = useSelector((state) => state.isLogin.isLoggedIn);
 
   const [liked, setLiked] = useState(product.isFavorite);
   const [likeCount, setLikeCount] = useState(product.favCount);
@@ -36,55 +31,31 @@ export default function ProductCard({ product }) {
     }
   };
 
-  // 좋아요 상태 가져오기
-  const fetchLikedStatus = async () => {
-    try {
-      setLoading(true);
-      const res = await axios.get(`${API}/item/favorites/${product.id}`);
-      // console.log('좋아요 상태 조회 응답:', res.data);
-
-      if (res.status === 404) {
-        // 좋아요가 없는 경우 기본값 설정
-        setLiked(false);
-        setLikeCount(0);
-        return;
-      }
-
-      if (res.data.success) {
-        setLiked(res.data.isFavorite);
-        setLikeCount(res.data.favCount);
-      }
-    } catch (error) {
-      // console.error('좋아요 상태 조회 오류:', error);
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (!product.id) {
-      console.warn('product.id가 없음:', product);
-      return;
-    }
-    fetchLikedStatus();
-  }, [product.id]);
-
   // 좋아요 버튼
   const handleLikeClick = async (e) => {
     e.preventDefault(); // 부모 요소 링크 이동 방지
 
     if (loading) return; // 중복 요청 방지
 
-    if (!isLoggedIn) {
-      setIsLoginModalOpen(true);
-      return;
-    }
-
-    setLoading(true);
-    const newLikedState = !liked;
-
-    // (todo) 콘솔 에러 수정하기
-
+    // 로그인 유저인지 확인
     try {
+      setLoading(true);
+
+      const loginRes = await axios.post(
+        `${API}/user/token`,
+        {},
+        { withCredentials: true },
+      );
+
+      console.log('유저 있어???:', loginRes.data.id);
+
+      if (!loginRes.data.id) {
+        setIsLoginModalOpen(true);
+        return;
+      }
+
+      const newLikedState = !liked;
+
       if (newLikedState) {
         // 좋아요 추가
         const res = await axios.post(`${API}/item/favorites`, {
@@ -103,7 +74,7 @@ export default function ProductCard({ product }) {
       setLiked(newLikedState);
       setLikeCount((prev) => (newLikedState ? prev + 1 : prev - 1));
     } catch (error) {
-      // console.error('좋아요 상태 변경 중 오류:', error);
+      console.error('좋아요 처리 중 오류:', error);
     } finally {
       setLoading(false);
     }

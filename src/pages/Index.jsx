@@ -1,6 +1,6 @@
 import * as S from '../styles/mixins';
 import { styled } from 'styled-components';
-
+import TopSellers from '../components/home/TopSellers';
 const s3 = process.env.REACT_APP_S3;
 
 export default function Index() {
@@ -37,6 +37,8 @@ export default function Index() {
           ></SpeechBubbleWrapper>
         </Sidebar>
       </HeroContainer>
+
+      <TopSellers />
     </S.MainLayout>
   );
 }

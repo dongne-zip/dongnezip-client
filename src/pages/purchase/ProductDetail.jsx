@@ -139,7 +139,7 @@ export default function ProductDetail() {
       };
 
       dispatch(chat(chatPayload));
-      dispatch(setActiveRoom(roomId));
+      dispatch(setActiveRoom(roomId.toString()));
 
       // 채팅방 이동
       navigate(`/chat/${roomId}`);

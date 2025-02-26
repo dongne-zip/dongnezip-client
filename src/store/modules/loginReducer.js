@@ -28,6 +28,8 @@ export const loginReducer = (state = initialState, action) => {
         isLoggedIn: false,
         user: null,
       };
+    case 'UPDATE_USER': // 사용자 정보 업데이트 처리
+      return { ...state, user: action.payload };
     default:
       return state;
   }

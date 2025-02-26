@@ -25,7 +25,6 @@ function App() {
         <Header />
         <Routes>
           <Route path="/" element={<Home />} />
-
           {/* 구매페이지 */}
           <Route path="/purchase" element={<Purchase />} />
           {/* <Route path="/map" element={<Map />} /> */}
@@ -33,6 +32,7 @@ function App() {
             path="/purchase/product-detail/:id"
             element={<ProductDetail />}
           />
+          <Route path="/chat/:roomId" element={<Chat />}></Route>
 
           {/* 판매페이지 관련 */}
           <Route path="/sales" element={<SaleRegister />} />
@@ -45,7 +45,6 @@ function App() {
           <Route path="/mypage" element={<Index />}></Route>
           <Route path="/changeInfo" element={<EditProfile />}></Route>
           <Route path="/findPw" element={<FindPw />}></Route>
-
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Provider>

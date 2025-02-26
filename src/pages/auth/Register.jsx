@@ -34,7 +34,7 @@ export default function Register() {
   }, [nickname]);
 
   useEffect(() => {
-    const passwordRegex = /^(?=.*[a-zA-Z0-9@!#$])[A-Za-z0-9@!#$]{6,20}$/;
+    const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$]).{6,20}$/;
     setIsValidPassword(password !== '' ? passwordRegex.test(password) : null);
   }, [password]);
 

@@ -37,13 +37,12 @@ export default function SoldItems() {
     fetchSoldItems(page);
   }, [page]);
 
-  // Function to load more items (next page)
-  const soldItemsMore = () => {
-    if (page < totalPages) {
-      setPage(page + 1);
+  const handlePageChange = (newPage) => {
+    if (newPage !== page && newPage > 0 && newPage <= totalPages) {
+      setPage(newPage);
+      setItems([]); // Optionally clear previous items when loading new page
     }
   };
-
   if (loading) return <div>로딩 중...</div>;
   if (error) return <div>{error}</div>;
 
@@ -54,7 +53,8 @@ export default function SoldItems() {
         <div>
           {items.map((item) => (
             <div key={item.id}>
-              <img src={item.images[0]} alt={item.title} />
+              <img src={item.imageUrl} alt={item.title} />
+
               <div>{item.title}</div>
               <div>{item.price}원</div>
             </div>
@@ -64,7 +64,27 @@ export default function SoldItems() {
         <p>판매한 물품이 없습니다.</p>
       )}
 
-      {page < totalPages && <button onClick={soldItemsMore}>더보기</button>}
+      {/* Pagination controls */}
+      <div>
+        {page > 1 && (
+          <button onClick={() => handlePageChange(page - 1)}>이전</button>
+        )}
+
+        {/* Page numbers */}
+        {[...Array(totalPages)].map((_, index) => (
+          <button
+            key={index + 1}
+            onClick={() => handlePageChange(index + 1)}
+            style={{ fontWeight: page === index + 1 ? 'bold' : 'normal' }}
+          >
+            {index + 1}
+          </button>
+        ))}
+
+        {page < totalPages && (
+          <button onClick={() => handlePageChange(page + 1)}>다음</button>
+        )}
+      </div>
     </div>
   );
 }

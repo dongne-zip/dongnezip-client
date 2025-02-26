@@ -39,7 +39,7 @@ function App() {
 
           {/* 판매페이지 관련 */}
           <Route path="/sales" element={<SaleRegister />} />
-          <Route path="/sales/SellerSales" element={<SellerSales />} />
+          <Route path="/sales/sellerSales" element={<SellerSales />} />
           {/* <Route path="/sales/SaleChange" element={<SaleChange />}></Route> */}
           <Route path="/chat" element={<Chat />}></Route>
 

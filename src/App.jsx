@@ -15,8 +15,12 @@ import FindPw from './pages/auth/FindPw';
 import ProductDetail from './pages/purchase/ProductDetail';
 import SellerSales from './pages/sales/SellerSales';
 import Chat from './pages/Chat';
-// import Map from './components/sales/Map';
+import SoldItems from './pages/mypage/SoldItems';
+import LikeItems from './pages/mypage/Favorites';
 import ChatList from './pages/chatList';
+import BoughtItems from './pages/mypage/BoughtItems';
+// import Map from './components/sales/Map';
+
 function App() {
   return (
     <>
@@ -36,7 +40,7 @@ function App() {
 
           {/* 판매페이지 관련 */}
           <Route path="/sales" element={<SaleRegister />} />
-          <Route path="/sales/SellerSales" element={<SellerSales />} />
+          <Route path="/sales/sellerSales" element={<SellerSales />} />
           {/* <Route path="/sales/SaleChange" element={<SaleChange />}></Route> */}
           <Route path="/chat" element={<Chat />}></Route>
 
@@ -46,6 +50,9 @@ function App() {
           <Route path="/mypage" element={<Index />}></Route>
           <Route path="/changeInfo" element={<EditProfile />}></Route>
           <Route path="/findPw" element={<FindPw />}></Route>
+          <Route path="/soldItems" element={<SoldItems />}></Route>
+          <Route path="/boughtItems" element={<BoughtItems />}></Route>
+          <Route path="/likeItems" element={<LikeItems />}></Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Provider>

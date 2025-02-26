@@ -7,6 +7,7 @@ import * as S from '../../styles/mixins';
 import styled from 'styled-components';
 import { updateUser } from '../../store/types';
 import { loginUser, logoutUser } from '../../store/types';
+import ModalAlert from '../../components/common/ModalAlert';
 
 const API = process.env.REACT_APP_API_SERVER;
 axios.defaults.withCredentials = true;
@@ -31,15 +32,36 @@ export default function EditProfile() {
   const [profileData, setProfileData] = useState({ ...user, profileImg: '' }); // 프로필 데이터
   const [previewImage, setPreviewImage] = useState(null); // 미리보기 이미지 상태
 
+  const [isModalOpen, setIsModalOpen] = useState(false); // State to control modal visibility
+  // const [deleteConfirmed, setDeleteConfirmed] = useState(false); // To
+
   // 새로고침 후 로그인 상태를 유지
-  useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem('user'));
-    if (storedUser) {
-      dispatch(loginUser(storedUser)); // Redux 상태에 사용자 정보 저장
-    } else {
-      navigate('/login'); // 로그인되지 않으면 로그인 페이지로 리디렉션
+  const checkLoginStatus = async () => {
+    try {
+      const response = await axios.post(`${API}/user/token`);
+
+      if (response.data.result) {
+        const userData = {
+          id: response.data.id,
+          nickname: response.data.nickname,
+          profileImg: response.data.profileImg,
+        };
+        dispatch(loginUser(userData)); // Redux 상태 업데이트
+        localStorage.setItem('user', JSON.stringify(userData)); //  localStorage에도 저장
+        console.log('userData', userData);
+      } else {
+        throw new Error('로그인되지 않음');
+      }
+    } catch (error) {
+      console.error('로그인 상태 확인 실패:', error);
+      dispatch(logoutUser()); // Redux에서 로그아웃 처리
+      localStorage.removeItem('user'); // localStorage에서도 제거
+      navigate('/login'); // 로그인 페이지로 이동
     }
-  }, [dispatch, navigate]);
+  };
+  useEffect(() => {
+    checkLoginStatus();
+  }, []);
 
   useEffect(() => {
     if (nicknameChanged && !nicknameError) {
@@ -151,30 +173,41 @@ export default function EditProfile() {
       alert('변경 사항이 없습니다.');
     }
   };
+  const handleOpenModal = () => {
+    setIsModalOpen(true);
+  };
+
+  // Handle closing the modal
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
+  // Handle the user deletion request
   const handleDeleteUser = async () => {
-    if (window.confirm('정말 회원 탈퇴를 하시겠습니까?')) {
-      try {
-        // 회원 탈퇴 요청
-        const response = await axios.delete(`${API}/user/deleteUser`, {});
-        console.log(response);
-        // 서버에서 성공적인 응답이 왔을 때
-        if (response.data.result) {
-          alert('회원탈퇴가 완료되었습니다.');
+    try {
+      // Send the deletion request
+      const response = await axios.delete(`${API}/user/deleteUser`, {});
 
-          // 로그아웃 처리 (localStorage 및 Redux 상태 초기화)
-          localStorage.removeItem('user');
-          dispatch(logoutUser()); // logoutUser 액션을 만들어서 Redux 상태 초기화 (로그인 상태 해제)
+      if (response.data.result) {
+        alert('회원탈퇴가 완료되었습니다.');
 
-          // 로그인 페이지로 리디렉션
-          navigate('/login');
-        } else {
-          alert('회원탈퇴 실패. 다시 시도해주세요.');
-        }
-      } catch (error) {
-        console.error('회원탈퇴 중 오류 발생:', error);
-        alert('회원탈퇴에 실패했습니다. 다시 시도해주세요.');
+        // Log out and navigate to login page
+        localStorage.removeItem('user');
+        dispatch(logoutUser()); // You can dispatch logout if you are using Redux
+        navigate('/login');
+      } else {
+        alert('회원탈퇴 실패. 다시 시도해주세요.');
       }
+    } catch (error) {
+      console.error('회원탈퇴 중 오류 발생:', error);
+      alert('회원탈퇴에 실패했습니다. 다시 시도해주세요.');
     }
+  };
+
+  // This is where the modal is triggered, only proceed with deletion if confirmed
+  const handleConfirmDelete = () => {
+    handleDeleteUser(); // Proceed with user deletion if confirmed
+    handleCloseModal(); // Close the modal after confirming
   };
 
   if (!isLoggedIn) {
@@ -252,7 +285,14 @@ export default function EditProfile() {
         >
           수정
         </Button>
-        <DeleteButton onClick={handleDeleteUser}>회원 탈퇴</DeleteButton>
+        {/* <DeleteButton onClick={handleDeleteUser}>회원 탈퇴</DeleteButton> */}
+        <DeleteButton onClick={handleOpenModal}>회원 탈퇴</DeleteButton>
+        <ModalAlert
+          isOpen={isModalOpen}
+          content="정말 회원 탈퇴를 하시겠습니까?"
+          onClose={handleCloseModal}
+          onNavigate={handleConfirmDelete} // Call handleConfirmDelete on confirmation
+        />
       </ProfileContainer>
     </ExtendedMainLayout>
   );

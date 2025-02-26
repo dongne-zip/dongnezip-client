@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 const API = process.env.REACT_APP_API_SERVER;
 axios.defaults.withCredentials = true;
 
-export default function LikeItems() {
+export default function SoldItems() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -12,10 +12,10 @@ export default function LikeItems() {
   const [totalPages, setTotalPages] = useState(1);
 
   // Fetch sold items from the server
-  const fetchLikedItems = async (page) => {
+  const fetchSoldItems = async (page) => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API}/user/LikeItems?page=${page}`);
+      const response = await axios.get(`${API}/user/soldItems?page=${page}`);
       console.log('resp:::', response);
 
       if (response.data.message) {
@@ -34,7 +34,7 @@ export default function LikeItems() {
   };
 
   useEffect(() => {
-    fetchLikedItems(page);
+    fetchSoldItems(page);
   }, [page]);
 
   const handlePageChange = (newPage) => {
@@ -48,7 +48,7 @@ export default function LikeItems() {
 
   return (
     <div>
-      <h3>찜한 물품</h3>
+      <h3>판매 물품</h3>
       {items.length > 0 ? (
         <div>
           {items.map((item) => (

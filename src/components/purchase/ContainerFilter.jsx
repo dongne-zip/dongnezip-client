@@ -1,5 +1,7 @@
 // import * as S from '../../styles/mixins';
+import styled from 'styled-components';
 import { SEOUL_DISTRICTS, CATEGORY_LIST } from '../../data/constant';
+import { useState } from 'react';
 // import { categoryId, seoulDistricts } from '../../data/dummyProduct';
 
 export default function ContainerFilter({
@@ -12,39 +14,47 @@ export default function ContainerFilter({
   setCategory,
   setSortOption,
 }) {
+  const [expanded, setExpanded] = useState(false); //더보기 상태
+
   return (
-    <>
-      <section>
+    <FilterLayout>
+      <StatusWrapper>
         <h3>필터</h3>
         <label>
           <input
             type="checkbox"
             checked={available}
             onChange={() => setAvailable((prev) => !prev)}
-          />
+          />{' '}
           거래 가능
         </label>
-      </section>
+      </StatusWrapper>
 
-      <section>
+      <FilterContainer>
         <h4>위치</h4>
         <div>서울특별시</div>
-        {SEOUL_DISTRICTS.map(({ id, name }) => (
-          <label key={id}>
-            <input
-              type="radio"
-              name="location"
-              value={id}
-              checked={location === Number(id)}
-              onChange={(e) => setLocation(Number(e.target.value))}
-            />
-            {name}
-          </label>
-        ))}
-      </section>
+        <ScrollableLocation expanded={expanded}>
+          {SEOUL_DISTRICTS.map(({ id, name }) => (
+            <label key={id}>
+              <input
+                type="radio"
+                name="location"
+                value={id}
+                checked={location === Number(id)}
+                onChange={(e) => setLocation(Number(e.target.value))}
+              />{' '}
+              {name}
+            </label>
+          ))}
+        </ScrollableLocation>
+        <ToggleExpandButton onClick={() => setExpanded(!expanded)}>
+          {expanded ? '접기' : '더보기'}
+        </ToggleExpandButton>
+      </FilterContainer>
 
-      <section>
+      <FilterContainer>
         <h4>카테고리</h4>
+
         {CATEGORY_LIST.map(({ id, name }) => (
           <label key={id}>
             <input
@@ -53,13 +63,13 @@ export default function ContainerFilter({
               value={id}
               checked={category === id}
               onChange={(e) => setCategory(Number(e.target.value))}
-            />
+            />{' '}
             {name}
           </label>
         ))}
-      </section>
+      </FilterContainer>
 
-      <section>
+      <FilterContainer>
         <h4>정렬</h4>
         <label>
           <input
@@ -68,7 +78,7 @@ export default function ContainerFilter({
             value="latest"
             checked={sortOption === 'latest'}
             onChange={() => setSortOption('latest')}
-          />
+          />{' '}
           최신순
         </label>
         <label>
@@ -78,10 +88,71 @@ export default function ContainerFilter({
             value="popular"
             checked={sortOption === 'popular'}
             onChange={() => setSortOption('popular')}
-          />
+          />{' '}
           인기순
         </label>
-      </section>
-    </>
+      </FilterContainer>
+    </FilterLayout>
   );
 }
+
+// ---------------- 필터 전체 ------------------------
+const FilterLayout = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
+//
+const StatusWrapper = styled.section`
+  margin-bottom: 20px;
+`;
+
+// ------- 각 필터(위치, 상품 카테고리)를 감싸는 컨테이너 --------
+const FilterContainer = styled.section`
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid #f3f4f7;
+  margin-bottom: 1rem;
+
+  .location {
+    height: 100px;
+    overflow-y: scroll;
+  }
+`;
+
+//
+const ScrollableLocation = styled.div`
+  display: flex;
+  flex-direction: column;
+  max-height: ${({ expanded }) => (expanded ? '200px' : '120px')};
+  overflow-y: ${({ expanded }) => (expanded ? 'scroll' : 'hidden')};
+  padding-right: 5px;
+  transition: max-height 0.3s ease-in-out;
+
+  /* 스크롤바 스타일 조정 (크롬, 엣지, 사파리) */
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: #ccc;
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background-color: #f3f4f7;
+  }
+`;
+
+// 더보기/접기 토글
+const ToggleExpandButton = styled.button`
+  background: none;
+  color: var(--color-primary);
+  font-size: 14px;
+  text-align: left;
+  margin-top: 10px;
+
+  &:hover {
+    text-decoration: underline;
+  }
+`;

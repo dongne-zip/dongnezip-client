@@ -106,8 +106,11 @@ export default function Index() {
   );
 }
 
+// ----------------  전체 레이아웃 ----------------
 const PurchaseLayout = styled(S.MainLayout)`
   display: grid;
+  grid-template-columns: 1fr 3fr;
+  gap: 20px;
 `;
 
 // ----------------  상품 목록 그리드 ----------------

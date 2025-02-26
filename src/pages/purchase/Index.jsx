@@ -2,7 +2,6 @@ import { styled } from 'styled-components';
 // import { Link } from 'react-router-dom';
 import ContainerFilter from '../../components/purchase/ContainerFilter';
 import ProductCard from '../../components/purchase/ProductCard';
-// import { productList } from '../../data/dummyProduct';
 import * as S from '../../styles/mixins';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
@@ -35,7 +34,7 @@ export default function Index() {
       });
 
       if (res.data.success) {
-        // console.log('API 응답 데이터:', res.data.data);
+        console.log('API 응답 데이터:', res.data.data);
         setProducts(res.data.data);
       } else {
         throw new Error('데이터를 가져오는 데 실패했습니다.');

@@ -1,3 +1,4 @@
+// Map.jsx
 import { useEffect, useRef, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { setMarkers } from '../../store/modules/mapReducer';
@@ -127,8 +128,7 @@ export default function Map() {
   };
 
   // 모달에서 장소 이름 입력 후 저장 시 redux에 데이터를 업데이트
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleModalSubmit = () => {
     if (!markerCoords) return;
     const newData = { lat: markerCoords.lat, lng: markerCoords.lng, placeName };
     savedMarkerDataRef.current = newData;
@@ -168,25 +168,19 @@ export default function Map() {
         <ModalOverlay>
           <ModalContent>
             <h3>장소 이름 입력</h3>
-            <form onSubmit={handleSubmit}>
-              <Input
-                type="text"
-                value={placeName}
-                onChange={(e) => setPlaceName(e.target.value)}
-                placeholder="장소 이름을 입력하세요"
-                required
-              />
-              <ButtonContainer>
-                <Button type="submit">저장</Button>
-                <Button
-                  type="button"
-                  onClick={handleCancel}
-                  style={{ marginLeft: '10px' }}
-                >
-                  취소
-                </Button>
-              </ButtonContainer>
-            </form>
+            <Input
+              type="text"
+              value={placeName}
+              onChange={(e) => setPlaceName(e.target.value)}
+              placeholder="장소 이름을 입력하세요"
+              required
+            />
+            <ButtonContainer>
+              <Button onClick={handleModalSubmit}>저장</Button>
+              <Button onClick={handleCancel} style={{ marginLeft: '10px' }}>
+                취소
+              </Button>
+            </ButtonContainer>
           </ModalContent>
         </ModalOverlay>
       )}

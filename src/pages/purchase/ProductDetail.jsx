@@ -22,8 +22,11 @@ export default function ProductDetail() {
 
   const { id } = useParams();
   const dispatch = useDispatch();
-  const navigate = useNavigate();
+
   const [userId, setUserId] = useState(null);
+  const [userNick, setUserNick] = useState(null);
+
+  const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -55,7 +58,10 @@ export default function ProductDetail() {
     if (token) {
       try {
         const decodeToken = JSON.parse(token);
-        setUserId(decodeToken.id); //로그인한 사용자의 ID 설정
+
+        setUserId(decodeToken.id);
+        setUserNick(decodeToken.nickname);
+        console.log(decodeToken);
       } catch (err) {
         console.error(err);
       }
@@ -91,6 +97,15 @@ export default function ProductDetail() {
       return;
     }
 
+    if (userId === product.userId) {
+      navigate('/chat-list', {
+        state: {
+          productTitle: product.title,
+        },
+      });
+      return;
+    }
+
     const existingRoom = chatRooms.find(
       (room) =>
         room.itemId === product.id &&
@@ -109,6 +124,7 @@ export default function ProductDetail() {
         itemId: product.id,
         chatHost: product.userId,
         chatGuest: userId,
+        guestNick: userNick,
       });
 
       const roomId = response.data.roomId;
@@ -119,6 +135,7 @@ export default function ProductDetail() {
         itemId: product.id,
         chatHost: product.userId,
         chatGuest: userId,
+        guestNick: userNick,
       };
 
       dispatch(chat(chatPayload));

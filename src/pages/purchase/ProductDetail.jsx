@@ -17,6 +17,7 @@ export default function ProductDetail() {
   const { id } = useParams();
   const dispatch = useDispatch();
   const [userId, setUserId] = useState(null);
+  const [userNick, setUserNick] = useState(null);
   const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -45,6 +46,8 @@ export default function ProductDetail() {
       try {
         const decodeToken = JSON.parse(token);
         setUserId(decodeToken.id);
+        setUserNick(decodeToken.nickname);
+        console.log(decodeToken);
       } catch (err) {
         console.error(err);
       }
@@ -100,6 +103,15 @@ export default function ProductDetail() {
       return;
     }
 
+    if (userId === product.userId) {
+      navigate('/chat-list', {
+        state: {
+          productTitle: product.title,
+        },
+      });
+      return;
+    }
+
     const existingRoom = chatRooms.find(
       (room) =>
         room.itemId === product.id &&
@@ -118,6 +130,7 @@ export default function ProductDetail() {
         itemId: product.id,
         chatHost: product.userId,
         chatGuest: userId,
+        guestNick: userNick,
       });
 
       const roomId = response.data.roomId;
@@ -128,6 +141,7 @@ export default function ProductDetail() {
         itemId: product.id,
         chatHost: product.userId,
         chatGuest: userId,
+        guestNick: userNick,
       };
 
       dispatch(chat(chatPayload));

@@ -10,13 +10,15 @@ import NotFound from './pages/NotFound';
 import { GlobalStyle } from './styles/GlobalStyle';
 import { Provider } from 'react-redux';
 import store from './store/index';
-import SaleRegister from './pages/sales/SaleRegister';
+import SaleRegister from './pages/sales/Index';
 import FindPw from './pages/auth/FindPw';
 import ProductDetail from './pages/purchase/ProductDetail';
 import SellerSales from './pages/sales/SellerSales';
 import Chat from './pages/Chat';
 import SoldItems from './pages/mypage/SoldItems';
 import LikeItems from './pages/mypage/Favorites';
+import ChatList from './pages/chatList';
+// import Map from './components/sales/Map';
 
 function App() {
   return (
@@ -33,10 +35,13 @@ function App() {
             element={<ProductDetail />}
           />
           <Route path="/chat/:roomId" element={<Chat />}></Route>
+          <Route path="/chat-list" element={<ChatList />}></Route>
 
           {/* 판매페이지 관련 */}
           <Route path="/sales" element={<SaleRegister />} />
-          <Route path="/item" element={<SellerSales />} />
+          <Route path="/sales/SellerSales" element={<SellerSales />} />
+          {/* <Route path="/sales/SaleChange" element={<SaleChange />}></Route> */}
+          <Route path="/chat" element={<Chat />}></Route>
 
           {/* 마이페이지 관련 */}
           <Route path="/login" element={<Login />}></Route>

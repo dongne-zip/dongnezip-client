@@ -1,4 +1,3 @@
-// Map.jsx
 import { useEffect, useRef, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { setMarkers } from '../../store/modules/mapReducer';

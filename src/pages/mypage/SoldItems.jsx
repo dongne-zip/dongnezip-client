@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 const API = process.env.REACT_APP_API_SERVER;
 axios.defaults.withCredentials = true;
 
-export default function LikeItems() {
+export default function SoldItems() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -12,12 +12,10 @@ export default function LikeItems() {
   const [totalPages, setTotalPages] = useState(1);
 
   // Fetch sold items from the server
-  const fetchFavItems = async (page) => {
+  const fetchSoldItems = async (page) => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API}/user/LikeItems`, {
-        params: { page },
-      });
+      const response = await axios.get(`${API}/user/soldItems?page=${page}`);
       console.log('resp:::', response);
 
       if (response.data.message) {
@@ -36,11 +34,11 @@ export default function LikeItems() {
   };
 
   useEffect(() => {
-    fetchFavItems(page);
+    fetchSoldItems(page);
   }, [page]);
 
   // Function to load more items (next page)
-  const favItemsMore = () => {
+  const soldItemsMore = () => {
     if (page < totalPages) {
       setPage(page + 1);
     }
@@ -55,12 +53,8 @@ export default function LikeItems() {
       {items.length > 0 ? (
         <div>
           {items.map((item) => (
-            <div key={item.id} style={{ marginBottom: '20px' }}>
-              <img
-                src={item.images[0]}
-                alt={item.title}
-                style={{ width: '100px', height: '100px', objectFit: 'cover' }}
-              />
+            <div key={item.id}>
+              <img src={item.images[0]} alt={item.title} />
               <div>{item.title}</div>
               <div>{item.price}원</div>
             </div>
@@ -70,7 +64,7 @@ export default function LikeItems() {
         <p>판매한 물품이 없습니다.</p>
       )}
 
-      {page < totalPages && <button onClick={favItemsMore}>더보기</button>}
+      {page < totalPages && <button onClick={soldItemsMore}>더보기</button>}
     </div>
   );
 }

@@ -15,6 +15,8 @@ import FindPw from './pages/auth/FindPw';
 import ProductDetail from './pages/purchase/ProductDetail';
 import SellerSales from './pages/sales/SellerSales';
 import Chat from './pages/Chat';
+import SoldItems from './pages/mypage/SoldItems';
+import LikeItems from './pages/mypage/Favorites';
 
 function App() {
   return (
@@ -42,6 +44,8 @@ function App() {
           <Route path="/mypage" element={<Index />}></Route>
           <Route path="/changeInfo" element={<EditProfile />}></Route>
           <Route path="/findPw" element={<FindPw />}></Route>
+          <Route path="/soldItems" element={<SoldItems />}></Route>
+          <Route path="/likeItems" element={<LikeItems />}></Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Provider>

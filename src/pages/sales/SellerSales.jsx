@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
+import axios from 'axios';
+
+const API = process.env.REACT_APP_API_SERVER;
 
 export default function SellerSales() {
   const { sellerId } = useParams();
@@ -10,17 +13,15 @@ export default function SellerSales() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // 판매물품 조회 API 호출
   const fetchSoldItems = async (page) => {
     setLoading(true);
     setError('');
     try {
-      const response = await fetch(
-        `/api-server/soldItems?sellerId=${sellerId}&page=${page}`,
-      );
-      const data = await response.json();
+      const { data } = await axios.get(`${API}/item/soldItems`, {
+        params: { sellerId, page },
+      });
 
-      if (response.ok && data.success) {
+      if (data.success) {
         setItems(data.items);
         setCurrentPage(data.currentPage);
         setTotalPages(data.totalPages);
@@ -93,6 +94,7 @@ export default function SellerSales() {
   );
 }
 
+//-------------------Styled-components--------------------
 const SellerSalesLayout = styled.div`
   padding: 20px;
   min-height: 60vh;

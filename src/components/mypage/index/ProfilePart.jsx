@@ -11,7 +11,7 @@ axios.defaults.withCredentials = true;
 export default function ProfilePart() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const user = useSelector((state) => state.isLogin.user);
+  const user = useSelector((state) => state.isLogin.user); // Redux 상태에서 user 가져오기
   const isLoggedIn = useSelector((state) => state.isLogin.isLoggedIn);
 
   // 새로고침 후 로그인 상태를 유지
@@ -23,6 +23,14 @@ export default function ProfilePart() {
       navigate('/login'); // 로그인되지 않으면 로그인 페이지로 리디렉션
     }
   }, [dispatch, navigate]);
+
+  // 사용자의 정보가 변경되면 Redux 상태를 업데이트하여 최신 정보로 반영
+  useEffect(() => {
+    const storedUser = JSON.parse(localStorage.getItem('user'));
+    if (storedUser && !user) {
+      dispatch(loginUser(storedUser)); // Redux에 사용자 정보 업데이트
+    }
+  }, [dispatch, user]);
 
   // 로그아웃 처리
   const handleLogout = async () => {
@@ -45,8 +53,7 @@ export default function ProfilePart() {
 
   return (
     <ProfilePartS>
-      <ProfileImg src={user.profilePath?.profileImg} alt="프로필 사진" />
-
+      <ProfileImg src={user.profileImg} alt="프로필 사진" />
       <Desc>{user.nickname}님, 반갑습니다</Desc>
       <Link to="/changeInfo">
         <EditBtn>회원정보 수정</EditBtn>
@@ -55,7 +62,6 @@ export default function ProfilePart() {
     </ProfilePartS>
   );
 }
-
 const ProfilePartS = styled.div`
   display: flex;
   align-items: center;

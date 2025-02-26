@@ -108,7 +108,7 @@ export default function Login() {
           </Button>
           <Notice>
             계정이 없나요?
-            <Link to="/join" className="registerLink">
+            <Link to="/register" className="registerLink">
               회원가입
             </Link>
           </Notice>

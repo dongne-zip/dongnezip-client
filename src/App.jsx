@@ -17,7 +17,6 @@ import SellerSales from './pages/sales/SellerSales';
 import Chat from './pages/Chat';
 import ChatList from './pages/chatList';
 
-
 function App() {
   return (
     <>

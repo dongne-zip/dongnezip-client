@@ -1,4 +1,5 @@
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import {
   setCategoryId,
   setTitle,
@@ -18,6 +19,7 @@ axios.defaults.withCredentials = true; // 모든 요청에 쿠키 포함
 
 export default function SaleRegister() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { categoryId, title, itemStatus, price, detail } = useSelector(
     (state) => state.sale,
   );
@@ -104,9 +106,12 @@ export default function SaleRegister() {
 
       if (response.data.success) {
         alert('등록이 완료되었습니다!');
+        // 새로 등록된 상품의 id를 받아 ProductDetail 페이지로 이동
+        const newItemId = response.data.data.id; // 백엔드 응답
         dispatch(resetForm());
         setSelectedFiles([]);
         setLocalErrors({});
+        navigate(`/purchase/product-detail/${newItemId}`); // ProductDetail 페이지로 이동
       } else {
         alert('등록 실패: ' + response.data.message);
       }

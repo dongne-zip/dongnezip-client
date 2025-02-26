@@ -27,7 +27,6 @@ export default function ProductDetail() {
   const [userNick, setUserNick] = useState(null);
 
   const navigate = useNavigate();
-  const [userId, setUserId] = useState(null);
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -63,7 +62,6 @@ export default function ProductDetail() {
         setUserId(decodeToken.id);
         setUserNick(decodeToken.nickname);
         console.log(decodeToken);
-
       } catch (err) {
         console.error(err);
       }

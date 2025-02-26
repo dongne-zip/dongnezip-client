@@ -15,7 +15,7 @@ import FindPw from './pages/auth/FindPw';
 import ProductDetail from './pages/purchase/ProductDetail';
 import SellerSales from './pages/sales/SellerSales';
 import Chat from './pages/Chat';
-// import Map from './components/sales/Map';
+// import SaleChange from './pages/sales/SaleChange';
 
 function App() {
   return (
@@ -27,7 +27,6 @@ function App() {
           <Route path="/" element={<Home />} />
           {/* 구매페이지 */}
           <Route path="/purchase" element={<Purchase />} />
-          {/* <Route path="/map" element={<Map />} /> */}
           <Route
             path="/purchase/product-detail/:id"
             element={<ProductDetail />}
@@ -36,7 +35,8 @@ function App() {
 
           {/* 판매페이지 관련 */}
           <Route path="/sales" element={<SaleRegister />} />
-          <Route path="/sales/SellerSales/:id" element={<SellerSales />} />
+          <Route path="/sales/SellerSales" element={<SellerSales />} />
+          {/* <Route path="/sales/SaleChange" element={<SaleChange />}></Route> */}
           <Route path="/chat" element={<Chat />}></Route>
 
           {/* 마이페이지 관련 */}

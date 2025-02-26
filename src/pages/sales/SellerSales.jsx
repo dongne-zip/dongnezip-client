@@ -5,6 +5,7 @@ import { useParams } from 'react-router-dom'; // 라우트 파라미터 (sellerI
 import ProductCard from '../../components/purchase/ProductCard'; // 판매 물품 카드 컴포넌트
 
 const API = process.env.REACT_APP_API_SERVER;
+axios.defaults.withCredentials = true; // 모든 요청에 쿠키 포함
 
 export default function SellerSales() {
   const { sellerId } = useParams();
@@ -59,16 +60,13 @@ export default function SellerSales() {
 
       <SCardGrid>
         {items.map((item) => {
-          // ProductCard에서 필요로 하는 형태로 변환
           return (
             <ProductCard
               key={item.id}
               product={{
                 ...item,
-                // region.district 등은 item.Region?.district에 존재
                 Region: { district: item.Region?.district || '' },
-                // 좋아요 여부, 좋아요 수, 대표 이미지 등
-                isFavorite: false, // 임시 (필요 시 별도 로직)
+                isFavorite: false,
                 favCount: item.favCount ? parseInt(item.favCount, 10) : 0,
                 imgUrl: item.images?.[0] || '',
               }}

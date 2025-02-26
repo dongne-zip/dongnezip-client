@@ -29,12 +29,12 @@ export default function Register() {
   }, [email]);
 
   useEffect(() => {
-    const nicknameRegex = /^[a-zA-Z0-9가-힣]{4,20}$/;
+    const nicknameRegex = /^[a-zA-Z0-9가-힣]{3,10}$/;
     setIsValidNickname(nickname !== '' ? nicknameRegex.test(nickname) : null);
   }, [nickname]);
 
   useEffect(() => {
-    const passwordRegex = /^(?=.*[a-zA-Z0-9@!#$])[A-Za-z0-9@!#$]{6,20}$/;
+    const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$]).{6,20}$/;
     setIsValidPassword(password !== '' ? passwordRegex.test(password) : null);
   }, [password]);
 
@@ -142,9 +142,8 @@ export default function Register() {
         token: token,
       });
       console.log('verficationCODE:', response);
-      console.log('verficationCODE:', response.code);
-      console.log('verficationCODE:', response.token);
-      if (response.status === 200) {
+      console.log('result', response.data.result);
+      if (response.data.result) {
         setIsCodeValid(true);
         setIsEmailVerified(true);
         alert('인증번호가 확인되었습니다.');
@@ -163,7 +162,8 @@ export default function Register() {
       const response = await axios.post(`${API}/user/checkNick`, {
         nickname: nickname,
       });
-      if (response.status === 200) {
+      console.log('Response', response);
+      if (response.data.result) {
         alert('사용 가능한 닉네임입니다.');
       }
     } catch (error) {
@@ -254,7 +254,11 @@ export default function Register() {
               value={nickname}
               onChange={(e) => setNickname(e.target.value)}
             />
-            <VerificationInput type="button" onClick={handleNicknameCheck}>
+            <VerificationInput
+              type="button"
+              onClick={handleNicknameCheck}
+              disabled={!nickname || !isValidNickname}
+            >
               중복확인
             </VerificationInput>
           </EmailInput>
@@ -263,7 +267,7 @@ export default function Register() {
               ? ''
               : isValidNickname
                 ? ''
-                : '한글, 영문, 숫자만 입력 가능, 4~20자리'}
+                : '한글, 영문, 숫자만 입력 가능, 3~10자리'}
           </WarningText>
 
           <Label htmlFor="password">비밀번호:</Label>

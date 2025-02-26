@@ -1,103 +1,245 @@
-import { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { saveMarkers } from '../../store/modules/mapReducer';
+import { useEffect, useRef, useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { setMarkers } from '../../store/modules/mapReducer';
 
-const Map = () => {
+export default function Map() {
   const dispatch = useDispatch();
-  const storedMarkers = useSelector((state) => state.map.markers);
-  const [map, setMap] = useState(null);
-  const [markers, setMarkers] = useState([]);
+  const mapContainerRef = useRef(null);
+  const mapRef = useRef(null);
+  const markerRef = useRef(null);
+  const infoWindowRef = useRef(null);
+
+  const [markerCoords, setMarkerCoords] = useState(null);
+  const [placeName, setPlaceName] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  // 로컬에 저장된 마커 (인포윈도우 표시용)
+  const savedMarkerDataRef = useRef(null);
 
   useEffect(() => {
-    if (window.kakao && window.kakao.maps) {
-      initializeMap();
-    } else {
+    const initializeMap = (lat, lng) => {
+      const container = mapContainerRef.current;
+      const options = {
+        center: new window.kakao.maps.LatLng(lat, lng),
+        level: 3,
+      };
+      mapRef.current = new window.kakao.maps.Map(container, options);
+
+      window.kakao.maps.event.addListener(
+        mapRef.current,
+        'click',
+        function (mouseEvent) {
+          const latlng = mouseEvent.latLng;
+          if (markerRef.current) {
+            markerRef.current.setPosition(latlng);
+          } else {
+            markerRef.current = new window.kakao.maps.Marker({
+              position: latlng,
+              map: mapRef.current,
+            });
+            // 마커 클릭 시 인포윈도우 표시
+            window.kakao.maps.event.addListener(
+              markerRef.current,
+              'click',
+              handleMarkerClick,
+            );
+          }
+          setMarkerCoords({ lat: latlng.getLat(), lng: latlng.getLng() });
+          setIsModalOpen(true);
+        },
+      );
+    };
+
+    const loadMapWithGeolocation = () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
+            initializeMap(latitude, longitude);
+          },
+          (error) => {
+            console.error('Geolocation error:', error);
+            initializeMap(37.5665, 126.978);
+          },
+        );
+      } else {
+        console.error('Geolocation을 지원하지 않습니다.');
+        initializeMap(37.5665, 126.978);
+      }
+    };
+
+    const loadKakaoMapScript = () => {
       const script = document.createElement('script');
-      script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=7cf2cd1efa95313a520efbf5c739fb2e&libraries=services`;
+      const appKey = process.env.REACT_APP_KAKAOMAP_APPKEY;
+      script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${appKey}&autoload=false`;
       script.async = true;
-      script.onload = initializeMap;
       document.head.appendChild(script);
+      script.onload = () => {
+        window.kakao.maps.load(() => {
+          loadMapWithGeolocation();
+        });
+      };
+    };
+
+    if (!window.kakao) {
+      loadKakaoMapScript();
+    } else {
+      loadMapWithGeolocation();
     }
   }, []);
 
-  const initializeMap = () => {
-    window.kakao.maps.load(() => {
-      const mapContainer = document.getElementById('map');
-      const mapOption = {
-        center: new window.kakao.maps.LatLng(37.5665, 126.978),
-        level: 3,
-      };
-      const newMap = new window.kakao.maps.Map(mapContainer, mapOption);
-      setMap(newMap);
+  // 마커 클릭 시, 저장된 장소 이름(placeName)을 인포윈도우로 표시
+  const handleMarkerClick = () => {
+    const info = savedMarkerDataRef.current
+      ? savedMarkerDataRef.current.placeName
+      : '장소 이름이 없습니다.';
+    const content = `<div style="padding:5px;">
+      ${info}<br/>
+      <button id="deleteMarkerButton" style="padding:5px 10px; cursor:pointer;">삭제</button>
+    </div>`;
+    if (infoWindowRef.current) {
+      infoWindowRef.current.close();
+    }
+    infoWindowRef.current = new window.kakao.maps.InfoWindow({ content });
+    infoWindowRef.current.open(mapRef.current, markerRef.current);
 
-      // 기존 마커 불러오기
-      storedMarkers.forEach(({ lat, lng, info }) =>
-        addMarker(newMap, lat, lng, info),
-      );
-    });
+    setTimeout(() => {
+      const btn = document.getElementById('deleteMarkerButton');
+      if (btn) {
+        btn.addEventListener('click', handleDeleteMarker);
+      }
+    }, 0);
   };
 
-  const addMarker = (mapInstance, lat, lng, info) => {
-    if (markers.length >= 2) {
-      alert('최대 2개의 마커만 추가할 수 있습니다.');
-      return;
+  // 삭제 버튼 클릭 시 마커와 인포윈도우 삭제, redux 업데이트
+  const handleDeleteMarker = () => {
+    if (markerRef.current) {
+      markerRef.current.setMap(null);
+      markerRef.current = null;
     }
-
-    const markerPosition = new window.kakao.maps.LatLng(lat, lng);
-    const marker = new window.kakao.maps.Marker({
-      position: markerPosition,
-      map: mapInstance,
-    });
-
-    const infowindow = new window.kakao.maps.InfoWindow({
-      content: `<div style='padding:5px;'>${info}</div>`,
-    });
-
-    window.kakao.maps.event.addListener(marker, 'click', () => {
-      infowindow.open(mapInstance, marker);
-      setTimeout(() => infowindow.close(), 3000); // 3초 후 자동 닫힘
-    });
-
-    setMarkers((prev) => [...prev, { id: Date.now(), lat, lng, info, marker }]);
+    if (infoWindowRef.current) {
+      infoWindowRef.current.close();
+      infoWindowRef.current = null;
+    }
+    setMarkerCoords(null);
+    savedMarkerDataRef.current = null;
+    setPlaceName('');
+    dispatch(setMarkers([]));
   };
 
-  const handleMapClick = (mouseEvent) => {
-    if (markers.length >= 2) {
-      alert('최대 2개의 마커만 추가할 수 있습니다.');
-      return;
+  // 모달에서 장소 이름 입력 후 저장 시 redux에 데이터를 업데이트
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!markerCoords) return;
+    const newData = { lat: markerCoords.lat, lng: markerCoords.lng, placeName };
+    savedMarkerDataRef.current = newData;
+    dispatch(setMarkers([newData]));
+
+    const content = `<div style="padding:5px;">
+      ${placeName}<br/>
+      <button id="deleteMarkerButton" style="padding:5px 10px; cursor:pointer;">삭제</button>
+    </div>`;
+    if (infoWindowRef.current) {
+      infoWindowRef.current.close();
     }
+    infoWindowRef.current = new window.kakao.maps.InfoWindow({ content });
+    infoWindowRef.current.open(mapRef.current, markerRef.current);
 
-    const latlng = mouseEvent.latLng;
-    const info = prompt('주소 상세 정보를 입력해주세요:');
-    if (!info) return;
+    setTimeout(() => {
+      const btn = document.getElementById('deleteMarkerButton');
+      if (btn) {
+        btn.addEventListener('click', handleDeleteMarker);
+      }
+    }, 0);
 
-    addMarker(map, latlng.getLat(), latlng.getLng(), info);
+    setIsModalOpen(false);
+    setPlaceName('');
   };
 
-  useEffect(() => {
-    if (map) {
-      window.kakao.maps.event.addListener(map, 'click', handleMapClick);
-    }
-  }, [map, markers]);
-
-  const handleSave = () => {
-    const savedMarkers = markers.map(({ lat, lng, info }) => ({
-      lat,
-      lng,
-      info,
-    }));
-    dispatch(saveMarkers(savedMarkers));
-    alert('저장되었습니다.');
+  const handleCancel = () => {
+    setPlaceName('');
+    setIsModalOpen(false);
+    // 수정 시 취소하면 기존 마커는 유지하되 모달만 닫습니다.
   };
 
   return (
     <div>
-      <div id="map" style={{ width: '100%', height: '400px' }}></div>
-      <button onClick={handleSave} style={{ marginTop: '10px' }}>
-        저장
-      </button>
+      <MapContainer ref={mapContainerRef}></MapContainer>
+      {isModalOpen && (
+        <ModalOverlay>
+          <ModalContent>
+            <h3>장소 이름 입력</h3>
+            <form onSubmit={handleSubmit}>
+              <Input
+                type="text"
+                value={placeName}
+                onChange={(e) => setPlaceName(e.target.value)}
+                placeholder="장소 이름을 입력하세요"
+                required
+              />
+              <ButtonContainer>
+                <Button type="submit">저장</Button>
+                <Button
+                  type="button"
+                  onClick={handleCancel}
+                  style={{ marginLeft: '10px' }}
+                >
+                  취소
+                </Button>
+              </ButtonContainer>
+            </form>
+          </ModalContent>
+        </ModalOverlay>
+      )}
     </div>
   );
-};
+}
 
-export default Map;
+// -----------------------styled-components---------------------
+import styled from 'styled-components';
+
+export const MapContainer = styled.div`
+  width: 100%;
+  height: 400px;
+`;
+
+export const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+`;
+
+export const ModalContent = styled.div`
+  background: #fff;
+  padding: 20px;
+  border-radius: 4px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+`;
+
+export const Input = styled.input`
+  width: 100%;
+  padding: 8px;
+  margin: 10px 0;
+  box-sizing: border-box;
+`;
+
+export const ButtonContainer = styled.div`
+  display: flex;
+  justify-content: center;
+`;
+
+export const Button = styled.button`
+  padding: 8px 16px;
+  cursor: pointer;
+  &:hover {
+    opacity: 0.8;
+  }
+`;

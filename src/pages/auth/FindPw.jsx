@@ -43,7 +43,8 @@ export default function FindPw() {
         token,
         newPw: password,
       });
-      if (response.status === 200) {
+      console.log('response:cskdjfjd', response);
+      if (response.data.result) {
         alert('비밀번호 새로 설정 되었습니다');
         navigate('/login');
       }
@@ -54,9 +55,14 @@ export default function FindPw() {
   };
 
   const handleEmailVerification = async () => {
+    if (!email) {
+      alert('이메일을 입력해주세요.');
+      return;
+    }
     try {
       const response = await axios.post(`${API}/user/sendCode`, { email });
-      if (response.status === 200) {
+      console.log(response);
+      if (response.data.result) {
         alert('인증번호가 이메일로 전송되었습니다!');
         localStorage.setItem('emailAuthToken', response.data.token);
         setIsVerificationCodeVisible(true);
@@ -75,7 +81,7 @@ export default function FindPw() {
         code: verificationCode,
         token: token,
       });
-      if (response.status === 200) {
+      if (response.data.result) {
         setIsEmailVerified(true);
         alert('인증번호가 확인되었습니다.');
       } else {

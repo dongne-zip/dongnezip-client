@@ -55,10 +55,6 @@ export default function Login() {
     window.location.href = `${API}/user/login/kakao`;
   };
 
-  const handleGoogleLogin = () => {
-    window.location.href = `${API}/user/login/google`;
-  };
-
   return (
     <ExtendedMainLayout>
       <LoginContainer>
@@ -99,13 +95,7 @@ export default function Login() {
           </Button>
           <br />
           <br />
-          <Button
-            type="button"
-            onClick={handleGoogleLogin}
-            className="googleLogin"
-          >
-            구글 로그인하기
-          </Button>
+
           <Notice>
             계정이 없나요?
             <Link to="/register" className="registerLink">
@@ -197,14 +187,7 @@ const Button = styled.button`
       background-color: #ebe6b2;
     }
   }
-  &.googleLogin {
-    background-color: white;
-    color: black;
-    border: 1px solid black;
-    &:hover {
-      background-color: #fee;
-    }
-  }
+
   @media (max-width: 767px) {
     padding: 8px;
   }

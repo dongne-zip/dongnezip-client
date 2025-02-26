@@ -1,5 +1,9 @@
-import { useEffect, useRef } from 'react';
+
+import { useEffect, useState } from 'react';
+// import { useSelector } from 'react-redux';
+import axios from 'axios';
 import styled from 'styled-components';
+
 
 export default function MiniMap({ lat, lng, placeName }) {
   const containerRef = useRef(null);

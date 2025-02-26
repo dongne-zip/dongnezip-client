@@ -18,6 +18,7 @@ import Chat from './pages/Chat';
 import SoldItems from './pages/mypage/SoldItems';
 import LikeItems from './pages/mypage/Favorites';
 import ChatList from './pages/chatList';
+import BoughtItems from './pages/mypage/BoughtItems';
 // import Map from './components/sales/Map';
 
 function App() {
@@ -50,6 +51,7 @@ function App() {
           <Route path="/changeInfo" element={<EditProfile />}></Route>
           <Route path="/findPw" element={<FindPw />}></Route>
           <Route path="/soldItems" element={<SoldItems />}></Route>
+          <Route path="/boughtItems" element={<BoughtItems />}></Route>
           <Route path="/likeItems" element={<LikeItems />}></Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

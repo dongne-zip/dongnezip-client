@@ -72,7 +72,7 @@ export default function Index() {
   });
 
   return (
-    <PurchaseLayout>
+    <S.MainLayout>
       {/* ----------- 필터 영역 -----------*/}
       <ContainerFilter
         available={available}
@@ -102,18 +102,11 @@ export default function Index() {
           <p>상품이 없습니다</p>
         )}
       </ProductListContainer>
-    </PurchaseLayout>
+    </S.MainLayout>
   );
 }
 
-// ----------------  전체 레이아웃 ----------------
-const PurchaseLayout = styled(S.MainLayout)`
-  display: grid;
-  grid-template-columns: 1fr 3fr;
-  gap: 20px;
-`;
-
-// ----------------  상품 목록 그리드 ----------------
+// 상품 목록 그리드
 const ProductListContainer = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);

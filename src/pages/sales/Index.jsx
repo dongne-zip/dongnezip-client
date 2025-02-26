@@ -1,4 +1,5 @@
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import {
   setCategoryId,
   setTitle,
@@ -18,6 +19,7 @@ axios.defaults.withCredentials = true; // 모든 요청에 쿠키 포함
 
 export default function SaleRegister() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { categoryId, title, itemStatus, price, detail } = useSelector(
     (state) => state.sale,
   );
@@ -104,9 +106,12 @@ export default function SaleRegister() {
 
       if (response.data.success) {
         alert('등록이 완료되었습니다!');
+        // 새로 등록된 상품의 id를 받아 ProductDetail 페이지로 이동
+        const newItemId = response.data.data.id; // 백엔드 응답
         dispatch(resetForm());
         setSelectedFiles([]);
         setLocalErrors({});
+        navigate(`/purchase/product-detail/${newItemId}`); // ProductDetail 페이지로 이동
       } else {
         alert('등록 실패: ' + response.data.message);
       }
@@ -118,132 +123,44 @@ export default function SaleRegister() {
 
   return (
     <S.MainLayout>
-      <H1>판매 글 쓰기</H1>
-      <CenteredContainer>
-        <RegisterContainer>
-          <Category>
-            <H3>카테고리</H3>
-            <select
-              value={categoryId}
-              onChange={(e) => dispatch(setCategoryId(e.target.value))}
-            >
-              <option value="" disabled>
-                선택
-              </option>
-              <option value="1">의류/미용</option>
-              <option value="2">생활/주방</option>
-              <option value="3">디지털</option>
-              <option value="4">도서</option>
-              <option value="5">취미</option>
-              <option value="6">식품</option>
-              <option value="7">삽니다</option>
-              <option value="8">나눔</option>
-            </select>
-          </Category>
-          <form onSubmit={handleSubmit}>
-            <H3>제목</H3>
-            <Input
-              type="text"
-              value={title}
-              ref={titleRef}
-              placeholder="상품명을 입력해주세요."
-              onChange={(e) => dispatch(setTitle(e.target.value))}
-              onKeyDown={(e) => handleKeyPress(e, priceRef)}
-            />
-            {localErrors.title && <ErrorText>{localErrors.title}</ErrorText>}
-            <Section>
-              <H3>상품 상태</H3>
-              {['새상품', '최상', '상', '중', '하'].map((status) => (
-                <StatusButton
-                  type="button"
-                  key={status}
-                  active={itemStatus === status}
-                  onClick={() => dispatch(setItemStatus(status))}
-                >
-                  {status}
-                </StatusButton>
-              ))}
-            </Section>
-            <Section>
-              <H3>가격</H3>
-              <Input
-                type="text"
-                value={price}
-                ref={priceRef}
-                placeholder="₩ 가격을 입력해주세요."
-                onChange={handlePriceChange}
-                onKeyDown={(e) => handleKeyPress(e, detailRef)}
-              />
-              원
-              {localErrors.price && <ErrorText>{localErrors.price}</ErrorText>}
-            </Section>
-            <Section>
-              <H3>상품 설명</H3>
-              <Textarea
-                value={detail}
-                ref={detailRef}
-                placeholder="상품의 자세한 내용을 작성해주세요."
-                onChange={(e) => dispatch(setDetail(e.target.value))}
-              ></Textarea>
-              {localErrors.detail && (
-                <ErrorText>{localErrors.detail}</ErrorText>
-              )}
-            </Section>
-            <Section>
-              <H3>사진 업로드 (최대 5개)</H3>
-              <Input
-                type="file"
-                multiple
-                onChange={handleFileChange}
-                accept="image/*"
-              />
-              <ImagePreviewContainer>
-                {selectedFiles.map((file, index) => (
-                  <ImagePreview
-                    key={index}
-                    src={URL.createObjectURL(file)}
-                    alt={`미리보기 ${index + 1}`}
-                  />
-                ))}
-              </ImagePreviewContainer>
-            </Section>
-            <Section>
-              <H3>거래 희망 장소📍</H3>
-              <Map />
-            </Section>
-            <SubmitButton type="submit">등록하기</SubmitButton>
-          </form>
-        </RegisterContainer>
-      </CenteredContainer>
+      {/* ----------- 필터 영역 -----------*/}
+      <ContainerFilter
+        available={available}
+        setAvailable={setAvailable}
+        location={location}
+        setLocation={setLocation}
+        category={category}
+        setCategory={setCategory}
+        sortOption={sortOption}
+        setSortOption={setSortOption}
+      />
+
+      {/* ----------- 상품 목록 -----------*/}
+
+      <ProductListContainer>
+        {loading ? (
+          <p>Loading...</p>
+        ) : error ? (
+          <p>{error}</p>
+        ) : sortedProducts.length > 0 ? (
+          sortedProducts.map((product) => (
+            <div key={product.id}>
+              <ProductCard product={product} />
+            </div>
+          ))
+        ) : (
+          <p>상품이 없습니다</p>
+        )}
+      </ProductListContainer>
     </S.MainLayout>
   );
 }
 
-//----------------------------------- Styled Components -----------------------------------
-
-const H1 = styled.h1`
-  font-size: 38px;
-  font-weight: bold;
-  margin-bottom: 20px;
-  position: relative;
-
-  &::after {
-    content: '';
-    display: block;
-    width: 100%;
-    height: 2px;
-    background-color: #d9d9d9;
-    margin-top: 10px;
-  }
-
-  @media (max-width: 767px) {
-    font-size: 28px;
-    margin-bottom: 16px;
-  }
-`;
-
-const CenteredContainer = styled.div`
-  display: flex;
+// 상품 목록 그리드
+const ProductListContainer = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
   justify-content: center;
   align-items: center;
   width: 100%;

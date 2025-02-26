@@ -1,57 +1,82 @@
 import { useEffect, useRef } from 'react';
-// import { useSelector } from 'react-redux';
-// import axios from 'axios';
-import { styled } from 'styled-components';
+import { useSelector } from 'react-redux';
+// import { setMarkers } from '../../store/modules/mapReducer';
 
-export default function MiniMap({ lat, lng, placeName }) {
-  const containerRef = useRef(null);
+export default function MiniMap() {
+  const markers = useSelector((state) => state.map.markers);
+  const mapContainerRef = useRef(null);
+  const mapRef = useRef(null);
+  const markerRefs = useRef([]);
 
   useEffect(() => {
-    if (!lat || !lng) return;
+    const initMap = () => {
+      let centerLat = 33.450701;
+      let centerLng = 126.570667;
+      if (markers && markers.length > 0) {
+        centerLat = markers[0].lat;
+        centerLng = markers[0].lng;
+      }
 
-    const loadMap = () => {
-      const container = containerRef.current;
-      const options = {
-        center: new window.kakao.maps.LatLng(lat, lng),
-        level: 3,
-      };
-      const map = new window.kakao.maps.Map(container, options);
+      if (!mapRef.current) {
+        const options = {
+          center: new window.kakao.maps.LatLng(centerLat, centerLng),
+          level: 3,
+        };
+        mapRef.current = new window.kakao.maps.Map(
+          mapContainerRef.current,
+          options,
+        );
+      } else {
+        if (markers && markers.length > 0) {
+          const newCenter = new window.kakao.maps.LatLng(centerLat, centerLng);
+          mapRef.current.setCenter(newCenter);
+        }
+      }
 
-      const markerPosition = new window.kakao.maps.LatLng(lat, lng);
-      const marker = new window.kakao.maps.Marker({
-        position: markerPosition,
-        map: map,
-      });
+      // markerRefs.current.forEach((marker) => marker.setMap(null));
+      markerRefs.current = [];
 
-      // 정보창에 장소 이름 표시 (placeName이 있을 경우)
-      if (placeName) {
-        const infowindow = new window.kakao.maps.InfoWindow({
-          content: `<div style="padding:5px;">${placeName}</div>`,
+      if (markers && markers.length > 0) {
+        markers.forEach((data) => {
+          const markerPosition = new window.kakao.maps.LatLng(
+            data.lat,
+            data.lng,
+          );
+          const marker = new window.kakao.maps.Marker({
+            position: markerPosition,
+            map: mapRef.current,
+          });
+          markerRefs.current.push(marker);
+
+          const content = `<div style="padding:5px;">${data.placeName}</div>`;
+          const infowindow = new window.kakao.maps.InfoWindow({
+            content,
+          });
+          infowindow.open(mapRef.current, marker);
         });
-        infowindow.open(map, marker);
       }
     };
 
     if (!window.kakao) {
       const script = document.createElement('script');
-      const appKey = process.env.REACT_APP_KAKAOMAP_APPKEY;
-      script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${appKey}&autoload=false`;
       script.async = true;
+      script.src =
+        '//dapi.kakao.com/v2/maps/sdk.js?appkey=7cf2cd1efa95313a520efbf5c739fb2e&autoload=false';
       document.head.appendChild(script);
       script.onload = () => {
-        window.kakao.maps.load(loadMap);
+        window.kakao.maps.load(initMap);
       };
     } else {
-      window.kakao.maps.load(loadMap);
+      window.kakao.maps.load(initMap);
     }
-  }, [lat, lng, placeName]);
+  }, [markers]); // markers가 변경될 때마다 지도 내 마커 업데이트
 
-  return <Container ref={containerRef} />;
+  return (
+    <div>
+      <div
+        ref={mapContainerRef}
+        style={{ width: '100%', height: '400px' }}
+      ></div>
+    </div>
+  );
 }
-
-const Container = styled.div`
-  width: 100%;
-  height: 300px;
-  border-radius: 8px;
-  overflow: hidden;
-`;

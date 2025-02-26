@@ -2,7 +2,6 @@ import { styled } from 'styled-components';
 // import { Link } from 'react-router-dom';
 import ContainerFilter from '../../components/purchase/ContainerFilter';
 import ProductCard from '../../components/purchase/ProductCard';
-// import { productList } from '../../data/dummyProduct';
 import * as S from '../../styles/mixins';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
@@ -35,7 +34,7 @@ export default function Index() {
       });
 
       if (res.data.success) {
-        // console.log('API 응답 데이터:', res.data.data);
+        console.log('API 응답 데이터:', res.data.data);
         setProducts(res.data.data);
       } else {
         throw new Error('데이터를 가져오는 데 실패했습니다.');
@@ -56,7 +55,7 @@ export default function Index() {
   const filteredProducts = products.filter((product) => {
     return (
       (!available || product.buyerId === null) && // 거래 가능 여부: buyerId가 null인지 확인
-      (location === 0 || Number(product.Region.id) === Number(location)) && // 지역 필터
+      (location === 0 || Number(product.Region?.id) === Number(location)) && // 지역 필터
       (category === 0 || Number(product.Category.id) === Number(category)) // 카테고리 필터
     );
   });

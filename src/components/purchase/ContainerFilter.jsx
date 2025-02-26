@@ -1,8 +1,7 @@
 // import * as S from '../../styles/mixins';
-import styled from 'styled-components';
+import { styled } from 'styled-components';
 import { SEOUL_DISTRICTS, CATEGORY_LIST } from '../../data/constant';
 import { useState } from 'react';
-// import { categoryId, seoulDistricts } from '../../data/dummyProduct';
 
 export default function ContainerFilter({
   available,

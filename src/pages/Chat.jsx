@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
 import axios from 'axios';
 import { useSelector } from 'react-redux';
 // import { jwtDecode } from 'jwt-decode';
 import { useParams } from 'react-router-dom';
+import styled from 'styled-components';
 
 // 소켓 서버에 연결 (자동 연결은 하지 않음)
 const socket = io.connect('http://localhost:8080', { autoConnect: false });
@@ -25,18 +26,13 @@ export default function Chat() {
   const [chatList, setChatList] = useState([]); // 채팅 메시지 목록
   const [isLoading, setIsLoading] = useState(true);
   const [isSocketConnected, setIsSocketConnected] = useState(false);
+  const [imagePreview, setImagePreview] = useState(null);
+  const chatSectionRef = useRef(null);
 
   // 컴포넌트 마운트 시 사용자 토큰을 받아와서 userId 설정
   useEffect(() => {
     async function fetchUserData() {
       try {
-        const token = localStorage.getItem('user');
-        if (token) {
-          console.log('로컬 스토리지에서 토큰 확인:', token);
-          const decodeToken = JSON.parse(token);
-          setUserId(decodeToken.id);
-          console.log('userId 설정:', decodeToken.id);
-        }
         const response = await axios.post(`${API}/user/token`, {
           withCredentials: true,
         });
@@ -46,6 +42,14 @@ export default function Chat() {
         console.log('userNickname 설정:', nickname);
         setIsLoading(false);
         console.log('isLoading false로 변경');
+
+        const token = localStorage.getItem('user');
+        if (token) {
+          console.log('로컬 스토리지에서 토큰 확인:', token);
+          const decodeToken = JSON.parse(token);
+          setUserId(decodeToken.id);
+          console.log('userId 설정:', decodeToken.id);
+        }
       } catch (err) {
         console.error('useridErr', err);
       }
@@ -75,9 +79,9 @@ export default function Chat() {
         setIsSocketConnected(true);
         if (paramsRoomId) {
           console.log('방 참여 요청:', roomId);
-          socket.emit('joinRoom', roomId);
+          socket.emit('joinRoom', userNickname, roomId);
           console.log('Joined room:', roomId);
-          socket.emit('checkNick', userNickname, roomId);
+          // socket.emit('checkNick', userNickname, roomId);
         }
       };
 
@@ -111,11 +115,20 @@ export default function Chat() {
         .then((response) => response.json())
         .then((data) => {
           console.log('data', data);
-          setChatList(data.message || []); // 데이터가 없을 경우 빈 배열 설정
+
+          const chatData = data.message.map((msg) => ({
+            ...msg,
+            type: msg.senderId === userId ? 'me' : 'other',
+            name: msg.senderNick,
+            msgType: msg.msgType || 'text',
+          }));
+          setChatList(chatData);
+          console.log('userid1', userId);
+          console.log('data.senderid', data.message[userId + 1].senderId);
         })
         .catch((err) => console.error('메시지 불러오기 실패:', err));
     }
-  }, [roomId]);
+  }, [roomId, userId]);
 
   useEffect(() => {
     const noticeHandler = (notice) => {
@@ -137,6 +150,8 @@ export default function Chat() {
     // message 이벤트 처리 함수: 실제 메시지를 채팅 목록에 추가
     const messageHandler = (data) => {
       console.log('Message received:', data); // 수신 확인용 로그
+      console.log('senderid', data.senderId);
+      console.log('userid', userId);
       const type = data.senderId === userId ? 'me' : 'other';
       setChatList((prev) => [
         ...prev,
@@ -155,11 +170,35 @@ export default function Chat() {
     return () => {
       socket.off('message', messageHandler);
     };
-  }, []);
+  }, [userId]);
+
+  useEffect(() => {
+    setTimeout(() => {
+      if (chatSectionRef.current) {
+        chatSectionRef.current.scrollTop = chatSectionRef.current.scrollHeight;
+      }
+    }, 100);
+  }, [chatList, imagePreview]);
 
   // 이미지 파일 선택 핸들러: 선택한 파일을 상태에 저장
   const handleImage = (e) => {
-    setImageInput(e.target.files[0]);
+    const file = e.target.files[0];
+    if (file) {
+      // 이미지 파일만 허용 (accept 속성도 추가되어 있으므로 브라우저 차원에서 제한)
+      if (file.type.startsWith('image/')) {
+        setImageInput(file);
+        const previewUrl = URL.createObjectURL(file);
+        setImagePreview(previewUrl); /* 추가됨 */
+      } else {
+        alert('이미지 파일만 선택할 수 있습니다.');
+        e.target.value = null; // 파일 선택 초기화 /* 추가됨 */
+      }
+    }
+  };
+
+  const handleCancelImage = () => {
+    setImageInput(null); /* 추가됨 */
+    setImagePreview(null);
   };
 
   // 메시지 전송 폼 제출 핸들러
@@ -214,6 +253,7 @@ export default function Chat() {
     // 메시지 입력 및 이미지 상태 초기화
     setMsgInput('');
     setImageInput(null);
+    setImagePreview(null);
   };
 
   if (isLoading) {
@@ -224,55 +264,173 @@ export default function Chat() {
   }
 
   return (
-    <>
-      {/* 채팅 메시지 목록 출력 */}
-      <section>
+    <Container>
+      <ChatSection ref={chatSectionRef}>
         {chatList.map((chat, key) => {
           if (chat.type === 'notice') {
-            // 공지 메시지 처리
-            return (
-              <div key={key} className="notice">
-                {chat.message}
-              </div>
-            );
+            return <Notice key={key}>{chat.message}</Notice>;
           } else if (chat.msgType === 'image') {
-            // 이미지 메시지 처리
             return (
-              <div key={key} className={`speech ${chat.type}`}>
+              <Speech key={key} sender={chat.type}>
                 {chat.type === 'other' && (
-                  <span className="nickname">{chat.name || ''}</span>
+                  <Nickname>{chat.name || ''}</Nickname>
                 )}
-                <img src={chat.message} alt="uploaded" />
-              </div>
+                <ImageMsg src={chat.message} alt="uploaded" />
+              </Speech>
             );
           } else {
-            // 일반 텍스트 메시지 처리
             return (
-              <div key={key} className={`speech ${chat.type}`}>
+              <Speech key={key} sender={chat.type}>
                 {chat.type === 'other' && (
-                  <span className="nickname">{chat.name || ''}</span>
+                  <Nickname>{chat.name || ''}</Nickname>
                 )}
-                <span className="msg-box">{chat.message}</span>
-              </div>
+                <MsgBox>{chat.message}</MsgBox>
+              </Speech>
             );
           }
         })}
-      </section>
-      <div></div>
-      {/* 메시지 전송 폼 */}
-      <form onSubmit={handleSubmit}>
-        <input type="file" name="image" id="image" onChange={handleImage} />
-        <br />
-        <input
-          type="text"
-          placeholder="asdf"
-          value={msgInput}
-          onChange={(e) => {
-            setMsgInput(e.target.value);
-          }}
+      </ChatSection>
+      {imagePreview && <PreviewImage src={imagePreview} alt="미리보기" />}
+      <FormContainer onSubmit={handleSubmit}>
+        <FileLabel htmlFor="image">📷</FileLabel>
+        <FileInput
+          type="file"
+          name="image"
+          id="image"
+          accept="image/*"
+          onChange={handleImage}
         />
-        <button>전송</button>
-      </form>
-    </>
+        {imagePreview && (
+          <CancelButton onClick={handleCancelImage}>❌</CancelButton>
+        )}
+
+        <InputText
+          type="text"
+          placeholder="메시지를 입력하세요..."
+          value={msgInput}
+          onChange={(e) => setMsgInput(e.target.value)}
+        />
+        <SendButton type="submit">전송</SendButton>
+      </FormContainer>
+    </Container>
   );
 }
+
+const Container = styled.div`
+  display: flex;
+  flex-direction: column;
+  height: 91.5vh;
+  background-color: #e3f3fa;
+  overflow: hidden;
+`;
+
+const ChatSection = styled.section`
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  background-color: #e3f3fa;
+`;
+
+const Notice = styled.div`
+  text-align: center;
+  color: #888;
+  font-size: 0.9em;
+  margin: 10px 0;
+`;
+
+// 메시지 박스의 정렬을 props.sender에 따라 변경합니다.
+// chat.type이 'me'이면 왼쪽 정렬, 'other'이면 오른쪽 정렬합니다.
+const Speech = styled.div`
+  display: flex;
+  flex-direction: column;
+  max-width: 70%;
+  margin: 8px 0;
+  padding: 10px;
+  border-radius: 15px;
+  background-color: ${(props) =>
+    props.sender === 'me' ? '#fbfcd4' : '#ffffff'};
+  align-self: ${(props) => (props.sender === 'me' ? 'flex-end' : 'flex-start')};
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+  position: relative;
+`;
+
+const Nickname = styled.span`
+  font-size: 0.8em;
+  color: #555;
+  margin-bottom: 5px;
+`;
+
+const MsgBox = styled.span`
+  font-size: 1em;
+  color: #333;
+`;
+
+const ImageMsg = styled.img`
+  max-width: 30vh;
+  height: auto;
+  border-radius: 10px;
+`;
+
+const PreviewImage = styled.img`
+  max-height: 30vh; /* 최대 세로 길이 제한 */
+  max-width: 100%; /* 부모 너비를 넘지 않도록 제한 */
+  object-fit: contain; /* 이미지 비율 유지 */
+  display: block; /* 불필요한 inline spacing 제거 */
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  background-color: #e3f3fa;
+  align-self: flex-start;
+`;
+
+const FormContainer = styled.form`
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  background-color: #eee;
+`;
+
+const FileInput = styled.input`
+  display: none;
+`;
+
+const FileLabel = styled.label`
+  cursor: pointer;
+  background-color: #ddd;
+  padding: 8px;
+  border-radius: 50%;
+  margin-right: 8px;
+`;
+
+const CancelButton = styled.button`
+  background-color: #ff6961;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  padding: 8px;
+  margin-right: 8px;
+  cursor: pointer;
+`; /* 추가됨 */
+
+const InputText = styled.input`
+  flex: 1;
+  padding: 10px 15px;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  outline: none;
+`;
+
+const SendButton = styled.button`
+  padding: 10px 15px;
+  background-color: var(--color-primary);
+  border: none;
+  color: #fff;
+  border-radius: 20px;
+  cursor: pointer;
+  margin-left: 8px;
+  &:hover {
+    background-color: #45a09b;
+  }
+`;

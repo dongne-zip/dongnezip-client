@@ -165,6 +165,8 @@ export default function Register() {
       console.log('Response', response);
       if (response.data.result) {
         alert('사용 가능한 닉네임입니다.');
+      } else {
+        alert(response.data.message);
       }
     } catch (error) {
       console.error(error);

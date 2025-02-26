@@ -7,7 +7,8 @@ import * as S from '../../styles/mixins';
 import styled from 'styled-components';
 import { updateUser } from '../../store/types';
 import { loginUser, logoutUser } from '../../store/types';
-import ModalAlert from '../../components/common/ModalAlert';
+// import ModalAlert from '../../components/common/ModalAlert';
+import ModalMy from '../../components/mypage/index/ModalMy';
 
 const API = process.env.REACT_APP_API_SERVER;
 axios.defaults.withCredentials = true;
@@ -287,7 +288,7 @@ export default function EditProfile() {
         </Button>
         {/* <DeleteButton onClick={handleDeleteUser}>회원 탈퇴</DeleteButton> */}
         <DeleteButton onClick={handleOpenModal}>회원 탈퇴</DeleteButton>
-        <ModalAlert
+        <ModalMy
           isOpen={isModalOpen}
           content="정말 회원 탈퇴를 하시겠습니까?"
           onClose={handleCloseModal}

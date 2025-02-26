@@ -37,7 +37,7 @@ export default function ProductCard({ product }) {
 
     if (loading) return; // 중복 요청 방지
 
-    // 로그인 유저인지 확인
+    // 로그인 상태 확인
     try {
       setLoading(true);
 
@@ -85,7 +85,7 @@ export default function ProductCard({ product }) {
       <ItemContainer onClick={handleCardClick}>
         <ItemImgWrapper>
           <img
-            src={product.imgUrl || `${s3}/images/dummy/product-img.png`}
+            src={product.imageUrl || `${s3}/images/dummy/product-img.png`}
             alt={product.title}
           />
         </ItemImgWrapper>
@@ -128,11 +128,10 @@ export default function ProductCard({ product }) {
 const ItemContainer = styled.div`
   display: flex;
   flex-direction: column;
-  width: 200px;
-  height: 260px;
+  width: 220px;
+  height: 300px;
   padding: 10px;
   margin-bottom: 40px;
-  border-color: var(--color-lightgray);
 
   img {
     border-radius: 10px;
@@ -144,6 +143,12 @@ const ItemImgWrapper = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+  width: 200px;
+  height: 200px;
+
+  img {
+    border: 1px solid #f3f4f7;
+  }
 `;
 
 const ItemInfoWrapper = styled.div`

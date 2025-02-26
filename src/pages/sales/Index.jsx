@@ -141,12 +141,12 @@ export default function SaleRegister() {
             </select>
           </Category>
           <form onSubmit={handleSubmit}>
-            <H3>제목:</H3>
+            <H3>제목</H3>
             <Input
               type="text"
               value={title}
               ref={titleRef}
-              placeholder="상품명을 입력해주세요"
+              placeholder="상품명을 입력해주세요."
               onChange={(e) => dispatch(setTitle(e.target.value))}
               onKeyDown={(e) => handleKeyPress(e, priceRef)}
             />
@@ -170,6 +170,7 @@ export default function SaleRegister() {
                 type="text"
                 value={price}
                 ref={priceRef}
+                placeholder="₩ 가격을 입력해주세요."
                 onChange={handlePriceChange}
                 onKeyDown={(e) => handleKeyPress(e, detailRef)}
               />
@@ -181,6 +182,7 @@ export default function SaleRegister() {
               <Textarea
                 value={detail}
                 ref={detailRef}
+                placeholder="상품의 자세한 내용을 작성해주세요."
                 onChange={(e) => dispatch(setDetail(e.target.value))}
               ></Textarea>
               {localErrors.detail && (
@@ -273,7 +275,7 @@ const Category = styled.div`
   margin-bottom: 20px;
 
   select {
-    width: 100%;
+    width: 45%;
     padding: 8px 12px;
     font-size: 16px;
     border: 1px solid #ccc;
@@ -306,7 +308,7 @@ const H3 = styled.h3`
 `;
 
 const Input = styled.input`
-  width: 600px;
+  width: 400px;
   height: 50px;
   padding: 10px;
   font-size: 16px;

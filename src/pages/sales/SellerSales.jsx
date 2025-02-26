@@ -1,231 +1,162 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import styled from 'styled-components';
-import axios from 'axios';
-import ProductCard from '../../components/purchase/ProductCard';
-
-const s3 = process.env.REACT_APP_S3;
-const API = process.env.REACT_APP_API_SERVER;
-axios.defaults.withCredentials = true;
 
 export default function SellerSales() {
+  const { sellerId } = useParams();
   const [items, setItems] = useState([]);
-  const [itemCount, setItemCount] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  // 사용자 정보 상태 추가
-  const [userId, setUserId] = useState(null);
-  const [userNick, setUserNick] = useState('');
+  // 판매물품 조회 API 호출
+  const fetchSoldItems = async (page) => {
+    setLoading(true);
+    setError('');
+    try {
+      const response = await fetch(
+        `/api-server/soldItems?sellerId=${sellerId}&page=${page}`,
+      );
+      const data = await response.json();
 
-  // ---------- 로그인된 사용자 정보 가져오기 ----------
-  useEffect(() => {
-    const token = localStorage.getItem('user');
-    if (token) {
-      try {
-        const decodeToken = JSON.parse(token);
-        setUserId(decodeToken.id);
-        setUserNick(decodeToken.nickname);
-      } catch (err) {
-        console.error(err);
+      if (response.ok && data.success) {
+        setItems(data.items);
+        setCurrentPage(data.currentPage);
+        setTotalPages(data.totalPages);
+      } else {
+        setError(data.message || '데이터를 불러오는데 실패했습니다.');
       }
+    } catch (err) {
+      setError('서버 오류 발생');
+    } finally {
+      setLoading(false);
     }
-  }, []);
+  };
 
-  // userId가 설정된 후에 판매 내역 fetch
   useEffect(() => {
-    if (!userId) return;
-    const fetchSoldItems = async () => {
-      try {
-        const res = await axios.get(`${API}/user/soldItems`, {
-          params: { page: 1, sellerId: userId },
-        });
-        if (res.data.items) {
-          setItems(res.data.items);
-          setItemCount(res.data.totalItems);
-        } else {
-          console.error('판매 내역 로드 실패:', res.data.message);
-        }
-      } catch (error) {
-        console.error('판매 내역 로드 오류:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (sellerId) {
+      fetchSoldItems(currentPage);
+    }
+  }, [sellerId, currentPage]);
 
-    fetchSoldItems();
-  }, [userId]);
+  const handlePrevPage = () => {
+    if (currentPage > 1) setCurrentPage((prev) => prev - 1);
+  };
 
-  if (loading) return <div>Loading...</div>;
-
-  // 판매자 정보: 판매 내역이 있을 경우 첫 번째 상품에서 seller 정보를 추출,
-  // 없으면 localStorage의 userNick과 기본값을 사용
-  const product =
-    items.length > 0
-      ? items[0]
-      : {
-          user: {
-            profileImg: '',
-            nickname: userNick || '판매자 닉네임 식별 불가',
-          },
-          Region: {
-            district: '',
-          },
-        };
+  const handleNextPage = () => {
+    if (currentPage < totalPages) setCurrentPage((prev) => prev + 1);
+  };
 
   return (
-    <Layout>
-      <Header>
-        <SellerInfoWrapper>
-          <SellerProfile>
-            <img
-              src={product.user.profileImg || `${s3}/images/dummy/user-img.png`}
-              alt={`${product.user.nickname || '판매자'}님의 프로필 이미지`}
-            />
-          </SellerProfile>
-          <SellerText>
-            <SellerName>
-              {product.user.nickname || '판매자 닉네임 식별 불가'}
-            </SellerName>
-            <SellerLocation>{product.Region.district}</SellerLocation>
-          </SellerText>
-        </SellerInfoWrapper>
-        {/* 767px 이하 모바일에서는 판매자 정보가 상품 상세 정보 아래로 이동 */}
-        <SellerInfoWrapperMobile>
-          <h2>판매자 정보</h2>
-          <div>
-            <SellerProfile>
-              <img
-                src={
-                  product.user.profileImg || `${s3}/images/dummy/user-img.png`
-                }
-                alt={`${product.user.nickname || '판매자'}님의 프로필 이미지`}
-              />
-            </SellerProfile>
-            <SellerText>
-              <SellerName>
-                {product.user.nickname || '판매자 닉네임 식별 불가'}
-              </SellerName>
-              <SellerLocation>{product.Region.district}</SellerLocation>
-            </SellerText>
-          </div>
-        </SellerInfoWrapperMobile>
-        <ItemInfo>
-          <ItemName>판매 내역</ItemName>
-          <ItemCount>총 판매 물품 ({itemCount}개)</ItemCount>
-        </ItemInfo>
-      </Header>
+    <SellerSalesLayout>
+      <h2>판매자 판매물품 조회</h2>
+      {loading && <p>로딩 중...</p>}
+      {error && <ErrorText>{error}</ErrorText>}
 
-      <CardGrid>
-        {items.map((item) => (
-          <ProductCard
-            key={item.id}
-            product={{
-              ...item,
-              Region: { district: '' },
-              isFavorite: false,
-              favCount: 0,
-              imgUrl: item.images?.[0] || '',
-            }}
-          />
-        ))}
-      </CardGrid>
-    </Layout>
+      {!loading && !error && items.length > 0 && (
+        <>
+          <CardContainer>
+            {items.map((item) => (
+              <Card key={item.id}>
+                <CardImageWrapper>
+                  {item.imageUrl ? (
+                    <img src={item.imageUrl} alt={item.title} />
+                  ) : (
+                    <img src="/images/no-image.png" alt="noImage" />
+                  )}
+                </CardImageWrapper>
+                <CardContent>
+                  <h3>{item.title}</h3>
+                  <p>{item.price.toLocaleString()} 원</p>
+                </CardContent>
+              </Card>
+            ))}
+          </CardContainer>
+          <PaginationWrapper>
+            <button onClick={handlePrevPage} disabled={currentPage === 1}>
+              이전
+            </button>
+            <span>
+              {currentPage} / {totalPages}
+            </span>
+            <button
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages}
+            >
+              다음
+            </button>
+          </PaginationWrapper>
+        </>
+      )}
+    </SellerSalesLayout>
   );
 }
 
-// ----------------------- Styled Components -----------------------
-const Layout = styled.div`
-  width: 100%;
-  max-width: 1200px;
-  margin: 40px auto;
-  padding: 0 20px;
+const SellerSalesLayout = styled.div`
+  padding: 20px;
+  min-height: 60vh;
 `;
 
-const Header = styled.div`
-  margin-bottom: 30px;
+const ErrorText = styled.p`
+  color: red;
 `;
 
-const SellerInfoWrapper = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 10px;
+const CardContainer = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
   margin-top: 20px;
-  margin-left: 20px;
-
-  @media (max-width: 767px) {
-    display: none;
-  }
 `;
 
-const SellerInfoWrapperMobile = styled.div`
-  display: none;
-  @media (max-width: 767px) {
-    display: flex;
-    flex-direction: column;
-    border-top: 1px solid var(--color-lightgray);
-    padding: 20px;
-    margin-top: 20px;
-
-    > div {
-      display: flex;
-      border: 1px solid var(--color-lightgray);
-      padding: 20px;
-      border-radius: 10px;
-    }
-  }
-`;
-
-const SellerProfile = styled.div`
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
+const Card = styled.div`
+  border: 1px solid #ccc;
+  border-radius: 8px;
   overflow: hidden;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-right: 4px;
+  background: #fff;
+  cursor: pointer;
+
+  &:hover {
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+`;
+
+const CardImageWrapper = styled.div`
+  width: 100%;
+  height: 160px;
+  overflow: hidden;
+  background: #f8f8f8;
 
   img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: center;
   }
 `;
 
-const SellerText = styled.div`
+const CardContent = styled.div`
+  padding: 8px;
+
+  h3 {
+    font-size: 16px;
+    margin-bottom: 4px;
+  }
+
+  p {
+    color: #666;
+    font-size: 14px;
+  }
+`;
+
+const PaginationWrapper = styled.div`
   display: flex;
-  flex-direction: column;
-`;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
 
-const SellerName = styled.div`
-  font-weight: bold;
-  font-size: 1.2rem;
-  margin-bottom: 4px;
-`;
-
-const SellerLocation = styled.div`
-  font-size: 14px;
-  color: gray;
-`;
-
-const ItemInfo = styled.div`
-  display: flex;
-  flex-direction: column;
-`;
-
-const ItemName = styled.div`
-  font-size: 20px;
-  font-weight: bold;
-  margin-bottom: 6px;
-`;
-
-const ItemCount = styled.div`
-  font-size: 14px;
-  color: #666;
-`;
-
-const CardGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 20px;
+  button {
+    margin: 0 8px;
+    padding: 4px 8px;
+    cursor: pointer;
+  }
 `;

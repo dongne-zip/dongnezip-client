@@ -38,8 +38,6 @@ export default function MyPage() {
     fetchUserInfo();
   }, []);
 
-  if (loading) return <div>로딩 중...</div>;
-  if (error) return <div>{error}</div>;
   const handleCardClick = (id) => {
     navigate(`/purchase/product-detail/${id}`);
   };
@@ -54,38 +52,44 @@ export default function MyPage() {
   };
   const { soldItems, boughtItems, favoriteItems } = userInfo || {};
   console.log(userInfo);
+
+  if (loading) return <div>로딩 중...</div>;
+  if (error) return <div>{error}</div>;
+
   return (
-    <div>
-      <div>
-        <h3>판매 물품</h3>
-        <button onClick={soldItemsMore}>더보기</button>
+    <Container>
+      <Section>
+        <SectionHeader>
+          <h3>판매 물품</h3>
+          <button onClick={soldItemsMore}>더보기</button>
+        </SectionHeader>
         {soldItems && soldItems.length > 0 ? (
-          <>
-            <ItemList>
-              {soldItems.slice(0, 4).map((item) => (
-                <ItemContainer
-                  key={item.id}
-                  onClick={() => handleCardClick(item.id)}
-                >
-                  <ItemImgWrapper>
-                    <img src={item.imgUrl} alt={item.title} />
-                  </ItemImgWrapper>
-                  <ItemInfoWrapper>
-                    <ItemTitle>{item.title}</ItemTitle>
-                    <ItemPrice>{item.price}원</ItemPrice>
-                  </ItemInfoWrapper>
-                </ItemContainer>
-              ))}
-            </ItemList>
-          </>
+          <ItemList>
+            {soldItems.slice(0, 4).map((item) => (
+              <ItemContainer
+                key={item.id}
+                onClick={() => handleCardClick(item.id)}
+              >
+                <ItemImgWrapper>
+                  <img src={item.imageUrl} alt={item.title} />
+                </ItemImgWrapper>
+                <ItemInfoWrapper>
+                  <ItemTitle>{item.title}</ItemTitle>
+                  <ItemPrice>{item.price}원</ItemPrice>
+                </ItemInfoWrapper>
+              </ItemContainer>
+            ))}
+          </ItemList>
         ) : (
           <p>판매한 물품이 없습니다.</p>
         )}
-      </div>
+      </Section>
 
-      <div>
-        <h3>구매 물품</h3>
-        <button onClick={boughtItemsMore}>더보기</button>
+      <Section>
+        <SectionHeader>
+          <h3>구매 물품</h3>
+          <button onClick={boughtItemsMore}>더보기</button>
+        </SectionHeader>
         {boughtItems && boughtItems.length > 0 ? (
           <ItemList>
             {boughtItems.slice(0, 4).map((item) => (
@@ -94,7 +98,7 @@ export default function MyPage() {
                 onClick={() => handleCardClick(item.id)}
               >
                 <ItemImgWrapper>
-                  <img src={item.imgUrl} alt={item.title} />
+                  <img src={item.imageUrl} alt={item.title} />
                 </ItemImgWrapper>
                 <ItemInfoWrapper>
                   <ItemTitle>{item.title}</ItemTitle>
@@ -106,14 +110,13 @@ export default function MyPage() {
         ) : (
           <p>구매한 물품이 없습니다.</p>
         )}
-      </div>
+      </Section>
 
-      <div>
-        <TitleBtn>
+      <Section>
+        <SectionHeader>
           <h3>찜한 물품</h3>
           <button onClick={favItemsMore}>더보기</button>
-        </TitleBtn>
-
+        </SectionHeader>
         {favoriteItems && favoriteItems.length > 0 ? (
           <ItemList>
             {favoriteItems.slice(0, 4).map((item) => (
@@ -122,7 +125,7 @@ export default function MyPage() {
                 onClick={() => handleCardClick(item.id)}
               >
                 <ItemImgWrapper>
-                  <img src={item.imgUrl} alt={item.title} />
+                  <img src={item.imageUrl} alt={item.title} />
                 </ItemImgWrapper>
                 <ItemInfoWrapper>
                   <ItemTitle>{item.title}</ItemTitle>
@@ -134,31 +137,83 @@ export default function MyPage() {
         ) : (
           <p>찜한 물품이 없습니다.</p>
         )}
-      </div>
-    </div>
+      </Section>
+    </Container>
   );
 }
+
+const Container = styled.div`
+  padding: 20px;
+
+  @media (max-width: 768px) {
+    padding: 10px;
+  }
+`;
+
+const Section = styled.div`
+  margin-bottom: 40px;
+`;
+
+const SectionHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+
+  button {
+    font-size: 14px;
+  }
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+
+    button {
+      margin-top: 10px;
+      font-size: 12px;
+    }
+  }
+`;
+
 const ItemList = styled.ul`
   display: flex;
   flex-wrap: wrap;
   gap: 20px;
   padding: 0;
   list-style: none;
+
+  @media (max-width: 768px) {
+    gap: 10px;
+  }
 `;
+
 const ItemContainer = styled.div`
   display: flex;
   flex-direction: column;
   width: 200px;
   height: 260px;
   padding: 10px;
-  margin-bottom: 40px;
-  border-color: var(--color-lightgray);
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+
+  &:hover {
+    transform: scale(1.05);
+    transition: transform 0.2s ease;
+  }
 
   img {
-    border-radius: 10px;
+    border-radius: 8px;
     object-fit: cover;
-    width: 100px;
-    height: 100px;
+    width: 100%;
+    height: 150px;
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    height: auto;
   }
 `;
 
@@ -175,20 +230,22 @@ const ItemInfoWrapper = styled.div`
 `;
 
 const ItemTitle = styled.div`
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
+  font-size: 14px;
+  font-weight: 600;
   margin-bottom: 5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
 `;
 
 const ItemPrice = styled.div`
-  display: flex;
   font-weight: 700;
+  font-size: 16px;
   margin-bottom: 10px;
 `;
 
-const TitleBtn = styled.div`
-  display: 'flex';
-  justify-content: 'space-between';
-  align-items: 'center';
-`;
+// const TitleBtn = styled.div`
+//   display: flex;
+//   justify-content: space-between;
+//   align-items: center;
+// `;

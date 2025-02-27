@@ -12,6 +12,10 @@ import MiniMap from '../../components/purchase/MiniMap';
 import { deleteItemDetail } from '../../utils/api';
 import ModalDelete from '../../components/purchase/ModalDelete';
 import ModalAlert from '../../components/common/ModalAlert';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faHeart as regularHeart } from '@fortawesome/free-regular-svg-icons'; // 빈 하트
+import { faHeart as solidHeart } from '@fortawesome/free-solid-svg-icons'; // 채워진 하트
+import ModalLogin from '../../components/purchase/ModalLogin';
 
 const s3 = process.env.REACT_APP_S3;
 const API = process.env.REACT_APP_API_SERVER;
@@ -34,6 +38,12 @@ export default function ProductDetail() {
   const [isAlertOpen, setIsAlertOpen] = useState(false); //삭제 완료 알림
   const [isDropdown, setDropdown] = useState(false); //판매자 전용 드롭다운 메뉴(편집, 삭제 권한)
   const chatRooms = useSelector((state) => state.chat.chatRooms);
+
+  const [liked, setLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+
+  const [isEditAlert, setIsEidtAlert] = useState(false);
 
   useEffect(() => {
     const fetchProductDetail = async () => {
@@ -68,6 +78,14 @@ export default function ProductDetail() {
     }
   }, []);
 
+  // ---------- 초기 좋아요 상태 ----------
+  useEffect(() => {
+    if (product) {
+      setLiked(product.isFavorite);
+      setLikeCount(product.favCount);
+    }
+  }, [product]);
+
   // 로딩 애니메이션
   if (loading) {
     return (
@@ -101,6 +119,7 @@ export default function ProductDetail() {
       navigate('/chat-list', {
         state: {
           productTitle: product.title,
+          itemId: product.id,
         },
       });
       return;
@@ -167,6 +186,47 @@ export default function ProductDetail() {
     }
   };
 
+  // ---------- 좋아요 버튼 ----------
+  const handleLikeClick = async (e) => {
+    e.preventDefault();
+
+    if (loading) return;
+
+    try {
+      setLoading(true);
+
+      const loginRes = await axios.post(
+        `${API}/user/token`,
+        {},
+        { withCredentials: true },
+      );
+
+      if (!loginRes.data.id) {
+        setIsLoginModalOpen(true);
+        return;
+      }
+
+      const newLikedState = !liked;
+
+      if (newLikedState) {
+        const res = await axios.post(`${API}/item/favorites`, {
+          itemId: product.id,
+        });
+        if (!res.data.success) throw new Error(res.data.message);
+      } else {
+        const res = await axios.delete(`${API}/item/favorites/${product.id}`);
+        if (!res.data.success) throw new Error(res.data.message);
+      }
+
+      setLiked(newLikedState);
+      setLikeCount((prev) => (newLikedState ? prev + 1 : prev - 1));
+    } catch (error) {
+      console.error('좋아요 처리 중 오류:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <S.MainLayout>
       <BreadcrumbContainer>
@@ -184,7 +244,7 @@ export default function ProductDetail() {
             {/* 드롭다운 메뉴 : 편집 & 삭제 버튼 표시 */}
             {isDropdown && (
               <DropdownMenu>
-                <DropdownItem>
+                <DropdownItem onClick={() => setIsEidtAlert(true)}>
                   <button>
                     <span className="material-symbols-outlined">edit</span>
                   </button>
@@ -216,6 +276,14 @@ export default function ProductDetail() {
         content={'삭제가 완료되었습니다.'}
         onClose={() => setIsAlertOpen(false)}
         onNavigate={() => navigate('/purchase')}
+      />
+
+      {/* 모달창 (편집 버튼) */}
+      <ModalAlert
+        isOpen={isEditAlert}
+        content={'개발 중인 기능입니다. 곧 만나요!'}
+        onClose={() => setIsEidtAlert(false)}
+        onNavigate={() => setIsEidtAlert(false)}
       />
 
       <ProductInfoContainer>
@@ -255,19 +323,26 @@ export default function ProductDetail() {
           {/* 버튼 영역 */}
           <ButtonWrapper>
             <ChatButton onClick={handleChatData}>채팅하기</ChatButton>
-            <FavoriteButton>찜하기</FavoriteButton>
+            <FavoriteButton onClick={handleLikeClick} disabled={loading}>
+              <span>찜하기</span>
+              <FontAwesomeIcon
+                icon={liked ? solidHeart : regularHeart}
+                style={{ color: liked ? 'red' : 'black' }}
+              />
+              {likeCount}
+            </FavoriteButton>
           </ButtonWrapper>
 
-          {/* 거래 상태 표시 (판매자 본인만 클릭 가능) */}
-          {isOwner && (
-            <TradeStatus>
-              {product.isOnwer === 'false' ? (
-                <TradeButton>판매중</TradeButton>
-              ) : (
-                <TradeButton>거래 완료</TradeButton>
-              )}
-            </TradeStatus>
-          )}
+          {/* 거래 상태 표시 (판매자 본인만 클릭 가능) -> 채팅에서 처리하는 것으로 변경 */}
+
+          <TradeStatus>
+            {!product.buyerId ? (
+              <span>📢&nbsp;&nbsp;판매중</span>
+            ) : (
+              <span>✅&nbsp;&nbsp;거래 완료</span>
+            )}
+          </TradeStatus>
+
           {/* 767이하 모바일에서는 판매자 정보가 상품 상세 정보 아래로 이동 */}
           <SellerInfoWrapperMobile>
             <h2>판매자 정보</h2>
@@ -305,6 +380,15 @@ export default function ProductDetail() {
         {/* 지도 */}
         <MiniMap />
       </ProductDetailContainer>
+
+      <ModalLogin
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        onNavigate={() => {
+          setIsLoginModalOpen(false);
+          navigate('/login', { replace: true });
+        }}
+      />
     </S.MainLayout>
   );
 }
@@ -544,21 +628,28 @@ const FavoriteButton = styled(ButtonBase)`
 const TradeStatus = styled.div`
   display: flex;
   margin-top: 20px;
-  font-size: 16px;
-  color: gray;
+  font-size: 18px;
+  color: var(--color-primary);
+  border: 1px solid var(--color-lightgray);
+  flex-grow: 1;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  padding: 10px;
+
   span {
     font-weight: bold;
   }
 `;
 
-const TradeButton = styled(ButtonBase)`
-  border: 1px solid var(--color-lightgray);
-  flex-grow: 1;
+// const TradeButton = styled(ButtonBase)`
+//   border: 1px solid var(--color-lightgray);
+//   flex-grow: 1;
 
-  &:hover {
-    background: #f8f8f8;
-  }
-`;
+//   &:hover {
+//     background: #f8f8f8;
+//   }
+// `;
 
 /* -------------- 거래 희망 장소 --------------*/
 const TradePlaceSection = styled.div`

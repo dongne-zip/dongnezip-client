@@ -13,7 +13,7 @@ export default function Index() {
           </LightBox>
           <BannerWrapper>
             <img
-              src={`${s3}/images/main-01.png`}
+              src={`${s3}/images/main-s.png`}
               alt="중고거래 배너 이미지(출처: 시사저널-조현경 디자이너)"
             />
           </BannerWrapper>
@@ -32,9 +32,13 @@ export default function Index() {
             </span>
           </SideItem>
 
-          <SpeechBubbleWrapper
-            bgUrl={`${s3}/images/speech-bubble.png`}
-          ></SpeechBubbleWrapper>
+          <SpeechBubble>
+            <h3>절판 도서 모음전</h3>
+            <span>
+              Lorem ipsum dolor sit, amet consectetur adipisicing elit. Enim,
+              laboriosam.
+            </span>
+          </SpeechBubble>
         </Sidebar>
       </HeroContainer>
 
@@ -48,24 +52,23 @@ const HeroContainer = styled.div`
   grid-template-columns: 3fr 1fr;
   gap: 20px;
   height: 500px;
+  margin-bottom: 100px;
 
   @media (max-width: 767px) {
     display: flex;
     flex-direction: column;
+    margin-bottom: 350px;
   }
 `;
 
 // ----------- 메인 배너 --------------
 const HeroSection = styled.div`
   position: relative;
-  background: url(${(props) => props.bgUrl}) center/cover no-repeat;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-black);
-  font-size: 2rem;
   max-width: 100%;
-  height: 94%;
+  height: 100%;
   border-radius: 40px;
   background-color: #daf3ff;
 `;
@@ -82,8 +85,8 @@ const LightBox = styled.div`
   background-color: var(--color-white);
 
   @media (max-width: 767px) {
-    height: 80px;
-    width: 80px;
+    height: 70px;
+    width: 70px;
   }
 `;
 
@@ -115,7 +118,7 @@ const BannerWrapper = styled.div`
 const Sidebar = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 10px;
   padding: 20px;
   background: white;
 `;
@@ -126,7 +129,7 @@ const SideItem = styled.div`
   justify-content: center;
   align-items: center;
   border-radius: 10px;
-  width: 110%;
+  width: 200px;
   padding: 10px;
 
   background-color: ${(props) =>
@@ -144,17 +147,20 @@ const SideItem = styled.div`
   }
 `;
 
-const SpeechBubbleWrapper = styled.div`
-  background: url(${(props) => props.bgUrl}) center/cover no-repeat;
-  height: 200px;
-  width: 140%;
+const SpeechBubble = styled.div`
+  background-color: #f3f3f3;
+  height: auto;
   display: flex;
-  padding: 30px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border-radius: 10px;
+  width: 200px;
+  padding: 10px;
 
   @media (max-width: 767px) {
-    width: 156%;
-    height: 150px;
-    margin-left: -100px;
-    justify-content: flex-start;
+    width: auto;
+    min-width: 150px;
+    flex: 1;
   }
 `;

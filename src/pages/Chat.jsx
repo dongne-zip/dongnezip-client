@@ -2,21 +2,30 @@ import { useEffect, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
 import axios from 'axios';
 import { useSelector } from 'react-redux';
-// import { jwtDecode } from 'jwt-decode';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import styled from 'styled-components';
 
-// 소켓 서버에 연결 (자동 연결은 하지 않음)
-const socket = io.connect('http://localhost:8080', { autoConnect: false });
 const API = process.env.REACT_APP_API_SERVER;
+const API2 = process.env.REACT_APP_API;
+
+// 소켓 서버에 연결 (자동 연결은 하지 않음)
+const socket = io.connect(API2, { autoConnect: false });
+
 export default function Chat() {
+  const navigate = useNavigate();
   const { roomId: paramsRoomId } = useParams();
   // Redux store에서 채팅방 관련 데이터를 가져옴
   const { activeRoomId, chatRooms } = useSelector((state) => state.chat);
-  const activeRoom = chatRooms.find((room) => room.itemId === activeRoomId);
-  const chatHost = activeRoom?.chatHost;
-  const chatGuest = activeRoom?.chatGuest;
+  console.log('chatroom', chatRooms);
   const roomId = activeRoomId || paramsRoomId;
+  console.log('roomId', roomId);
+  const activeRoomIdNum = parseInt(roomId, 10);
+  const activeRoom = chatRooms.find((room) => room.roomId === activeRoomIdNum);
+  console.log('activeroom', activeRoom);
+  const chatHost = activeRoom?.chatHost;
+  console.log('host', chatHost);
+  const chatGuest = activeRoom?.chatGuest;
+  console.log('guest', chatGuest);
 
   // 상태 변수 선언
   const [userId, setUserId] = useState(null); // 로그인한 사용자의 ID
@@ -256,6 +265,44 @@ export default function Chat() {
     setImagePreview(null);
   };
 
+  const handleCompleteTransaction = async () => {
+    if (window.confirm('정말로 거래를 완료하시겠습니까?')) {
+      try {
+        // 1. 거래 완료 요청
+        const response = await axios.post(`${API}/item/complete`, {
+          itemId: activeRoom.itemId,
+          buyerId: chatGuest,
+        });
+
+        if (response.data.success) {
+          alert('거래가 완료되었습니다');
+
+          // 2. 채팅방 삭제 요청
+          try {
+            const deleteResponse = await axios.delete(
+              `${API}/chat/room/${roomId}`,
+            );
+            if (deleteResponse.data.success) {
+              alert('채팅방이 삭제되었습니다');
+              // 선택적: 다른 페이지로 이동 (예: 채팅방 목록)
+              navigate('/purchase'); // 원하는 경로로 변경
+            } else {
+              alert('채팅방 삭제에 실패하였습니다');
+            }
+          } catch (deleteErr) {
+            console.error('Chat room delete error', deleteErr);
+            alert('채팅방 삭제 중 오류가 발생했습니다');
+          }
+        } else {
+          alert('거래 완료에 실패하였습니다. 다시 시도해주세요');
+        }
+      } catch (err) {
+        console.error('CompleteTransaction error', err);
+        alert('거래 완료 중 오류가 발생했습니다');
+      }
+    }
+  };
+
   if (isLoading) {
     return <div>data loading...</div>;
   }
@@ -310,6 +357,13 @@ export default function Chat() {
           value={msgInput}
           onChange={(e) => setMsgInput(e.target.value)}
         />
+        {console.log(userId)}
+        {console.log(chatHost)}
+        {userId === chatHost && (
+          <CompleteButton type="button" onClick={handleCompleteTransaction}>
+            거래 완료
+          </CompleteButton>
+        )}
         <SendButton type="submit">전송</SendButton>
       </FormContainer>
     </Container>
@@ -369,6 +423,8 @@ const MsgBox = styled.span`
 
 const ImageMsg = styled.img`
   max-width: 30vh;
+  max-height: 30vh;
+  object-fit: contain;
   height: auto;
   border-radius: 10px;
 `;
@@ -432,5 +488,18 @@ const SendButton = styled.button`
   margin-left: 8px;
   &:hover {
     background-color: #45a09b;
+  }
+`;
+
+const CompleteButton = styled.button`
+  padding: 10px 15px;
+  background-color: #007bff;
+  border: none;
+  color: #fff;
+  border-radius: 20px;
+  cursor: pointer;
+  margin-left: 8px;
+  &:hover {
+    background-color: #0056b3;
   }
 `;

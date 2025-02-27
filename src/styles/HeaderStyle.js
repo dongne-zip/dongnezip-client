@@ -103,9 +103,10 @@ export const Button = styled.button`
 
 // 모바일 버튼 상자
 export const AuthButtonWrapper = styled.div`
-  position: absolute;
+  position: fixed;
   bottom: 0;
   left: 0;
+  right: 0;
   width: 100%;
   display: flex;
   gap: 10px;
@@ -113,13 +114,15 @@ export const AuthButtonWrapper = styled.div`
   padding: 15px 20px;
   border-top: 1px solid #ddd;
   margin-top: 20px;
+  justify-content: center;
+  align-items: center;
 `;
 
 // 모바일 버튼 공통 스타일
 const MobileButton = styled.button`
   height: 48px;
   flex-grow: 1;
-  min-width: 140px;
+  min-width: 120px;
   padding: 8px 12px;
   border-radius: 5px;
   font-size: 16px;

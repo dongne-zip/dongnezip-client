@@ -160,12 +160,14 @@ export default function Header() {
         <S.AuthButtonWrapper>
           {isLoading ? null : !isLoggedIn ? (
             <>
-              <S.LoginButton onClick={toggleMobileNav}>
-                <Link to={'/login'}>로그인</Link>
-              </S.LoginButton>
-              <S.SignUpButton onClick={toggleMobileNav}>
-                <Link to={'/join'}>회원가입</Link>
-              </S.SignUpButton>
+              <Link to={'/login'}>
+                <S.LoginButton onClick={toggleMobileNav}>로그인</S.LoginButton>
+              </Link>
+              <Link to={'/register'}>
+                <S.SignUpButton onClick={toggleMobileNav}>
+                  회원가입
+                </S.SignUpButton>
+              </Link>
             </>
           ) : (
             <S.LoginButton onClick={toggleMobileNav}>

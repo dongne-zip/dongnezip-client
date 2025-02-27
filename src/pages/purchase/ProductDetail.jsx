@@ -333,16 +333,16 @@ export default function ProductDetail() {
             </FavoriteButton>
           </ButtonWrapper>
 
-          {/* 거래 상태 표시 (판매자 본인만 클릭 가능) */}
-          {isOwner && (
-            <TradeStatus>
-              {product.isOnwer === 'false' ? (
-                <TradeButton>판매중</TradeButton>
-              ) : (
-                <TradeButton>거래 완료</TradeButton>
-              )}
-            </TradeStatus>
-          )}
+          {/* 거래 상태 표시 (판매자 본인만 클릭 가능) -> 채팅에서 처리하는 것으로 변경 */}
+
+          <TradeStatus>
+            {!product.buyerId ? (
+              <span>📢&nbsp;&nbsp;판매중</span>
+            ) : (
+              <span>✅&nbsp;&nbsp;거래 완료</span>
+            )}
+          </TradeStatus>
+
           {/* 767이하 모바일에서는 판매자 정보가 상품 상세 정보 아래로 이동 */}
           <SellerInfoWrapperMobile>
             <h2>판매자 정보</h2>
@@ -628,21 +628,28 @@ const FavoriteButton = styled(ButtonBase)`
 const TradeStatus = styled.div`
   display: flex;
   margin-top: 20px;
-  font-size: 16px;
-  color: gray;
+  font-size: 18px;
+  color: var(--color-primary);
+  border: 1px solid var(--color-lightgray);
+  flex-grow: 1;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  padding: 10px;
+
   span {
     font-weight: bold;
   }
 `;
 
-const TradeButton = styled(ButtonBase)`
-  border: 1px solid var(--color-lightgray);
-  flex-grow: 1;
+// const TradeButton = styled(ButtonBase)`
+//   border: 1px solid var(--color-lightgray);
+//   flex-grow: 1;
 
-  &:hover {
-    background: #f8f8f8;
-  }
-`;
+//   &:hover {
+//     background: #f8f8f8;
+//   }
+// `;
 
 /* -------------- 거래 희망 장소 --------------*/
 const TradePlaceSection = styled.div`

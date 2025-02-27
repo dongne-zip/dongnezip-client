@@ -12,6 +12,10 @@ import MiniMap from '../../components/purchase/MiniMap';
 import { deleteItemDetail } from '../../utils/api';
 import ModalDelete from '../../components/purchase/ModalDelete';
 import ModalAlert from '../../components/common/ModalAlert';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faHeart as regularHeart } from '@fortawesome/free-regular-svg-icons'; // 빈 하트
+import { faHeart as solidHeart } from '@fortawesome/free-solid-svg-icons'; // 채워진 하트
+import ModalLogin from '../../components/purchase/ModalLogin';
 
 const s3 = process.env.REACT_APP_S3;
 const API = process.env.REACT_APP_API_SERVER;
@@ -34,6 +38,10 @@ export default function ProductDetail() {
   const [isAlertOpen, setIsAlertOpen] = useState(false); //삭제 완료 알림
   const [isDropdown, setDropdown] = useState(false); //판매자 전용 드롭다운 메뉴(편집, 삭제 권한)
   const chatRooms = useSelector((state) => state.chat.chatRooms);
+
+  const [liked, setLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchProductDetail = async () => {
@@ -67,6 +75,14 @@ export default function ProductDetail() {
       }
     }
   }, []);
+
+  // ---------- 초기 좋아요 상태 ----------
+  useEffect(() => {
+    if (product) {
+      setLiked(product.isFavorite);
+      setLikeCount(product.favCount);
+    }
+  }, [product]);
 
   // 로딩 애니메이션
   if (loading) {
@@ -162,6 +178,47 @@ export default function ProductDetail() {
     }
   };
 
+  // ---------- 좋아요 버튼 ----------
+  const handleLikeClick = async (e) => {
+    e.preventDefault();
+
+    if (loading) return;
+
+    try {
+      setLoading(true);
+
+      const loginRes = await axios.post(
+        `${API}/user/token`,
+        {},
+        { withCredentials: true },
+      );
+
+      if (!loginRes.data.id) {
+        setIsLoginModalOpen(true);
+        return;
+      }
+
+      const newLikedState = !liked;
+
+      if (newLikedState) {
+        const res = await axios.post(`${API}/item/favorites`, {
+          itemId: product.id,
+        });
+        if (!res.data.success) throw new Error(res.data.message);
+      } else {
+        const res = await axios.delete(`${API}/item/favorites/${product.id}`);
+        if (!res.data.success) throw new Error(res.data.message);
+      }
+
+      setLiked(newLikedState);
+      setLikeCount((prev) => (newLikedState ? prev + 1 : prev - 1));
+    } catch (error) {
+      console.error('좋아요 처리 중 오류:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <S.MainLayout>
       <BreadcrumbContainer>
@@ -250,7 +307,14 @@ export default function ProductDetail() {
           {/* 버튼 영역 */}
           <ButtonWrapper>
             <ChatButton onClick={handleChatData}>채팅하기</ChatButton>
-            <FavoriteButton>찜하기</FavoriteButton>
+            <FavoriteButton onClick={handleLikeClick} disabled={loading}>
+              <span>찜하기</span>
+              <FontAwesomeIcon
+                icon={liked ? solidHeart : regularHeart}
+                style={{ color: liked ? 'red' : 'black' }}
+              />
+              {likeCount}
+            </FavoriteButton>
           </ButtonWrapper>
 
           {/* 거래 상태 표시 (판매자 본인만 클릭 가능) */}
@@ -300,6 +364,15 @@ export default function ProductDetail() {
         {/* 지도 */}
         <MiniMap />
       </ProductDetailContainer>
+
+      <ModalLogin
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        onNavigate={() => {
+          setIsLoginModalOpen(false);
+          navigate('/login', { replace: true });
+        }}
+      />
     </S.MainLayout>
   );
 }

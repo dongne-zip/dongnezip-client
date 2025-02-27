@@ -27,6 +27,7 @@ export default function Header() {
         const response = await axios.post(`${API}/user/token`);
         // 서버에서 반환하는 값이 { result: true, nickname: '사용자이름' }인 경우
         if (response.data.result) {
+          console.log(userInfo);
           setUserInfo({ nickname: response.data.nickname });
           setIsLoggedIn(true);
         } else {
@@ -102,9 +103,7 @@ export default function Header() {
         {/* 로딩 상태일 때는 버튼을 숨기거나, 로딩 스피너를 표시 */}
         {isLoading ? null : isLoggedIn ? (
           <Link to={'/mypage'}>
-            <S.Button>
-              {userInfo?.nickname ? `${userInfo.nickname}님` : '마이페이지'}
-            </S.Button>
+            <S.Button>마이페이지</S.Button>
           </Link>
         ) : (
           <Link to={'/login'}>

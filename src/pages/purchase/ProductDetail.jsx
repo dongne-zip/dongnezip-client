@@ -43,6 +43,8 @@ export default function ProductDetail() {
   const [likeCount, setLikeCount] = useState(0);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
+  const [isEditAlert, setIsEidtAlert] = useState(false);
+
   useEffect(() => {
     const fetchProductDetail = async () => {
       try {
@@ -236,7 +238,7 @@ export default function ProductDetail() {
             {/* 드롭다운 메뉴 : 편집 & 삭제 버튼 표시 */}
             {isDropdown && (
               <DropdownMenu>
-                <DropdownItem>
+                <DropdownItem onClick={() => setIsEidtAlert(true)}>
                   <button>
                     <span className="material-symbols-outlined">edit</span>
                   </button>
@@ -268,6 +270,14 @@ export default function ProductDetail() {
         content={'삭제가 완료되었습니다.'}
         onClose={() => setIsAlertOpen(false)}
         onNavigate={() => navigate('/purchase')}
+      />
+
+      {/* 모달창 (편집 버튼) */}
+      <ModalAlert
+        isOpen={isEditAlert}
+        content={'개발 중인 기능입니다. 곧 만나요!'}
+        onClose={() => setIsEidtAlert(false)}
+        onNavigate={() => setIsEidtAlert(false)}
       />
 
       <ProductInfoContainer>

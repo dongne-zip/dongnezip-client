@@ -101,6 +101,7 @@ export default function ProductDetail() {
       navigate('/chat-list', {
         state: {
           productTitle: product.title,
+          itemId: product.id,
         },
       });
       return;

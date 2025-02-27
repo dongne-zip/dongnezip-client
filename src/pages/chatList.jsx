@@ -16,7 +16,8 @@ export default function ChatList() {
   const chatRooms = useSelector((state) => state.chat.chatRooms);
   const location = useLocation();
 
-  const { productTitle } = location.state || {};
+  const { productTitle, itemId } = location.state || {};
+  console.log(itemId);
   // 사용자 인증 및 채팅방 목록 가져오기
   useEffect(() => {
     const token = localStorage.getItem('user');
@@ -40,8 +41,15 @@ export default function ChatList() {
     }
     const fetchChatRooms = async () => {
       try {
-        // 사용자가 속한 모든 채팅방 가져오기
-        const response = await axios.get(`${API}/chat/rooms/${decodeToken.id}`);
+        if (!itemId) {
+          setError('itemId가 제공되지 않았습니다.');
+          setLoading(false);
+          return;
+        }
+
+        const response = await axios.get(
+          `${API}/chat/rooms/${decodeToken.id}/${itemId}`,
+        );
         dispatch(setChatRooms(response.data.rooms));
         setLoading(false);
       } catch (err) {

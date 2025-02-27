@@ -119,6 +119,7 @@ export default function ProductDetail() {
       navigate('/chat-list', {
         state: {
           productTitle: product.title,
+          itemId: product.id,
         },
       });
       return;
@@ -164,6 +165,11 @@ export default function ProductDetail() {
     } catch (err) {
       console.error(err);
     }
+  };
+
+  // ---------- 판매자 프로필 / 닉네임 클릭 ----------
+  const handleSellerClick = () => {
+    navigate(`/seller/${product.userId}`);
   };
 
   // ---------- 상품 등록한 사용자인지 확인 ----------
@@ -289,7 +295,7 @@ export default function ProductDetail() {
             />
           </ItemImgWrapper>
           <SellerInfoWrapper>
-            <SellerProfile>
+            <SellerProfile onClick={handleSellerClick}>
               <img
                 src={
                   product.user.profileImg || `${s3}/images/dummy/user-img.png`
@@ -298,7 +304,7 @@ export default function ProductDetail() {
               />
             </SellerProfile>
             <SellerText>
-              <SellerName>
+              <SellerName onClick={handleSellerClick}>
                 {product.user.nickname || '판매자 닉네임 식별 불가'}
               </SellerName>
               <SellerLocation>{product.Region.district}</SellerLocation>
@@ -341,7 +347,7 @@ export default function ProductDetail() {
           <SellerInfoWrapperMobile>
             <h2>판매자 정보</h2>
             <div>
-              <SellerProfile>
+              <SellerProfile onClick={handleSellerClick}>
                 <img
                   src={
                     product.user.profileImg || `${s3}/images/dummy/user-img.png`
@@ -350,7 +356,7 @@ export default function ProductDetail() {
                 />
               </SellerProfile>
               <SellerText>
-                <SellerName>
+                <SellerName onClick={handleSellerClick}>
                   {product.user.nickname || '판매자 닉네임 식별 불가'}
                 </SellerName>
                 <SellerLocation>{product.Region.district}</SellerLocation>

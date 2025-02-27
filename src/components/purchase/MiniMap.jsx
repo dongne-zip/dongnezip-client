@@ -1,12 +1,39 @@
 import { useEffect, useRef } from 'react';
-import { useSelector } from 'react-redux';
-// import { setMarkers } from '../../store/modules/mapReducer';
+import { useSelector, useDispatch } from 'react-redux';
+import axios from 'axios';
+import { setMarkers } from '../../store/modules/mapReducer';
+
+const API = process.env.REACT_APP_API_SERVER;
+axios.defaults.withCredentials = true; // 모든 요청에 쿠키 포함
 
 export default function MiniMap() {
   const markers = useSelector((state) => state.map.markers);
+  const dispatch = useDispatch();
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
   const markerRefs = useRef([]);
+
+  //아이템의 맵 정보
+  const fetchMapData = async () => {
+    try {
+      const response = await axios.get(`${API}/item/addItem`);
+      const items = response.data.map;
+
+      const newMarkers = items.map((item) => ({
+        lat: item.latitude,
+        lng: item.longitude,
+        placeName: item.placeName || '장소 이름 없음',
+      }));
+
+      dispatch(setMarkers(newMarkers));
+    } catch (error) {
+      console.error('맵 데이터를 불러오는 중 오류 발생:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchMapData();
+  }, []);
 
   useEffect(() => {
     const initMap = () => {
@@ -33,7 +60,7 @@ export default function MiniMap() {
         }
       }
 
-      // markerRefs.current.forEach((marker) => marker.setMap(null));
+      markerRefs.current.forEach((marker) => marker.setMap(null));
       markerRefs.current = [];
 
       if (markers && markers.length > 0) {

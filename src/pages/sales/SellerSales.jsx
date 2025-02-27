@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import * as S from '../../styles/mixins';
 import styled from 'styled-components';
 import axios from 'axios';
 
 const API = process.env.REACT_APP_API_SERVER;
+axios.defaults.withCredentials = true; // 모든 요청에 쿠키 포함
 
 export default function SellerSales() {
   const { sellerId } = useParams();
@@ -50,47 +52,49 @@ export default function SellerSales() {
   };
 
   return (
-    <SellerSalesLayout>
-      <h2>판매자 판매물품 조회</h2>
-      {loading && <p>로딩 중...</p>}
-      {error && <ErrorText>{error}</ErrorText>}
+    <S.MainLayout>
+      <SellerSalesLayout>
+        <h2>판매자 판매물품 조회</h2>
+        {loading && <p>로딩 중...</p>}
+        {error && <ErrorText>{error}</ErrorText>}
 
-      {!loading && !error && items.length > 0 && (
-        <>
-          <CardContainer>
-            {items.map((item) => (
-              <Card key={item.id}>
-                <CardImageWrapper>
-                  {item.imageUrl ? (
-                    <img src={item.imageUrl} alt={item.title} />
-                  ) : (
-                    <img src="/images/no-image.png" alt="noImage" />
-                  )}
-                </CardImageWrapper>
-                <CardContent>
-                  <h3>{item.title}</h3>
-                  <p>{item.price.toLocaleString()} 원</p>
-                </CardContent>
-              </Card>
-            ))}
-          </CardContainer>
-          <PaginationWrapper>
-            <button onClick={handlePrevPage} disabled={currentPage === 1}>
-              이전
-            </button>
-            <span>
-              {currentPage} / {totalPages}
-            </span>
-            <button
-              onClick={handleNextPage}
-              disabled={currentPage === totalPages}
-            >
-              다음
-            </button>
-          </PaginationWrapper>
-        </>
-      )}
-    </SellerSalesLayout>
+        {!loading && !error && items.length > 0 && (
+          <>
+            <CardContainer>
+              {items.map((item) => (
+                <Card key={item.id}>
+                  <CardImageWrapper>
+                    {item.imageUrl ? (
+                      <img src={item.imageUrl} alt={item.title} />
+                    ) : (
+                      <img src="/images/no-image.png" alt="noImage" />
+                    )}
+                  </CardImageWrapper>
+                  <CardContent>
+                    <h3>{item.title}</h3>
+                    <p>{item.price.toLocaleString()} 원</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </CardContainer>
+            <PaginationWrapper>
+              <button onClick={handlePrevPage} disabled={currentPage === 1}>
+                이전
+              </button>
+              <span>
+                {currentPage} / {totalPages}
+              </span>
+              <button
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+              >
+                다음
+              </button>
+            </PaginationWrapper>
+          </>
+        )}
+      </SellerSalesLayout>
+    </S.MainLayout>
   );
 }
 

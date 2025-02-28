@@ -378,7 +378,7 @@ export default function ProductDetail() {
           </div>
         </TradePlaceSection>
         {/* 지도 */}
-        <MiniMap />
+        <MiniMap id={id} />
       </ProductDetailContainer>
 
       <ModalLogin

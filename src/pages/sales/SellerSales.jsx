@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import * as S from '../../styles/mixins';
 import styled from 'styled-components';
 import axios from 'axios';
@@ -9,6 +9,7 @@ axios.defaults.withCredentials = true; // 모든 요청에 쿠키 포함
 
 export default function SellerSales() {
   const { sellerId } = useParams();
+  const navigate = useNavigate(); // useNavigate 훅 추가
   const [items, setItems] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
@@ -51,6 +52,11 @@ export default function SellerSales() {
     if (currentPage < totalPages) setCurrentPage((prev) => prev + 1);
   };
 
+  // 카드 클릭 시 ProductDetail 페이지로 이동하는 핸들러
+  const handleCardClick = (id) => {
+    navigate(`/purchase/product-detail/${id}`);
+  };
+
   return (
     <S.MainLayout>
       <SellerSalesLayout>
@@ -62,7 +68,7 @@ export default function SellerSales() {
           <>
             <CardContainer>
               {items.map((item) => (
-                <Card key={item.id}>
+                <Card key={item.id} onClick={() => handleCardClick(item.id)}>
                   <CardImageWrapper>
                     {item.imageUrl ? (
                       <img src={item.imageUrl} alt={item.title} />

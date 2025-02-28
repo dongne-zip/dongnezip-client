@@ -1,10 +1,11 @@
 import { useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import { setMarkers } from '../../store/modules/mapReducer';
 
 const API = process.env.REACT_APP_API_SERVER;
-axios.defaults.withCredentials = true; // 모든 요청에 쿠키 포함
+axios.defaults.withCredentials = true;
 
 export default function MiniMap() {
   const markers = useSelector((state) => state.map.markers);
@@ -12,20 +13,25 @@ export default function MiniMap() {
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
   const markerRefs = useRef([]);
+  const { id } = useParams();
 
-  //아이템의 맵 정보
+  // 특정 상품의 지도 데이터 불러오기
   const fetchMapData = async () => {
     try {
-      const response = await axios.get(`${API}/item/addItem`);
-      const items = response.data.map;
+      console.log('itemId', id);
+      const response = await axios.get(`${API}/item/${id}`);
+      const item = response.data.data;
 
-      const newMarkers = items.map((item) => ({
-        lat: item.latitude,
-        lng: item.longitude,
-        placeName: item.placeName || '장소 이름 없음',
-      }));
-
-      dispatch(setMarkers(newMarkers));
+      if (item.map && item.map.latitude && item.map.longitude) {
+        const newMarker = {
+          lat: Number(item.map.latitude),
+          lng: Number(item.map.longitude),
+          placeName: item.map.placeName || '장소 이름 없음',
+        };
+        dispatch(setMarkers([newMarker]));
+      } else {
+        dispatch(setMarkers([]));
+      }
     } catch (error) {
       console.error('맵 데이터를 불러오는 중 오류 발생:', error);
     }
@@ -33,13 +39,13 @@ export default function MiniMap() {
 
   useEffect(() => {
     fetchMapData();
-  }, []);
+  }, [id]);
 
   useEffect(() => {
     const initMap = () => {
       let centerLat = 33.450701;
       let centerLng = 126.570667;
-      if (markers && markers.length > 0) {
+      if (markers.length > 0) {
         centerLat = markers[0].lat;
         centerLng = markers[0].lng;
       }
@@ -54,7 +60,7 @@ export default function MiniMap() {
           options,
         );
       } else {
-        if (markers && markers.length > 0) {
+        if (markers.length > 0) {
           const newCenter = new window.kakao.maps.LatLng(centerLat, centerLng);
           mapRef.current.setCenter(newCenter);
         }
@@ -63,32 +69,27 @@ export default function MiniMap() {
       markerRefs.current.forEach((marker) => marker.setMap(null));
       markerRefs.current = [];
 
-      if (markers && markers.length > 0) {
-        markers.forEach((data) => {
-          const markerPosition = new window.kakao.maps.LatLng(
-            data.lat,
-            data.lng,
-          );
-          const marker = new window.kakao.maps.Marker({
-            position: markerPosition,
-            map: mapRef.current,
-          });
-          markerRefs.current.push(marker);
-
-          const content = `<div style="padding:5px;">${data.placeName}</div>`;
-          const infowindow = new window.kakao.maps.InfoWindow({
-            content,
-          });
-          infowindow.open(mapRef.current, marker);
+      markers.forEach((data) => {
+        const markerPosition = new window.kakao.maps.LatLng(data.lat, data.lng);
+        const marker = new window.kakao.maps.Marker({
+          position: markerPosition,
+          map: mapRef.current,
         });
-      }
+        markerRefs.current.push(marker);
+
+        const content = `<div style="padding:5px; background:white; border:1px solid #ccc; border-radius:4px;">${data.placeName}</div>`;
+        const infowindow = new window.kakao.maps.InfoWindow({
+          content,
+        });
+        infowindow.open(mapRef.current, marker);
+      });
     };
 
     if (!window.kakao) {
       const script = document.createElement('script');
       script.async = true;
-      script.src =
-        '//dapi.kakao.com/v2/maps/sdk.js?appkey=7cf2cd1efa95313a520efbf5c739fb2e&autoload=false';
+      const appKey = process.env.REACT_APP_KAKAOMAP_APPKEY;
+      script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${appKey}&autoload=false`;
       document.head.appendChild(script);
       script.onload = () => {
         window.kakao.maps.load(initMap);
@@ -96,7 +97,7 @@ export default function MiniMap() {
     } else {
       window.kakao.maps.load(initMap);
     }
-  }, [markers]); // markers가 변경될 때마다 지도 내 마커 업데이트
+  }, [markers]);
 
   return (
     <div>

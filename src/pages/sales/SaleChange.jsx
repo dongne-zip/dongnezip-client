@@ -1,7 +1,7 @@
 import { useDispatch, useSelector } from 'react-redux';
 import { useEffect, useRef, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { useParams } from 'react-router-dom';
 import Map from '../../components/sales/Map';
 import {
   setCategoryId,
@@ -18,7 +18,8 @@ const API = process.env.REACT_APP_API_SERVER;
 axios.defaults.withCredentials = true;
 
 export default function SaleChange() {
-  const { itemId } = useParams();
+  const { id } = useParams();
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const { categoryId, title, itemStatus, price, detail } = useSelector(
     (state) => state.sale,
@@ -33,11 +34,11 @@ export default function SaleChange() {
   const priceRef = useRef(null);
   const detailRef = useRef(null);
 
-  // 기존 상품 정보를 불러오기
+  // 기존 상품 정보 불러오기
   useEffect(() => {
     const fetchItem = async () => {
       try {
-        const response = await axios.get(`${API}/item/${itemId}`);
+        const response = await axios.get(`${API}/item/${id}`);
         if (response.data.success) {
           const data = response.data.data;
           dispatch(setCategoryId(data.categoryId));
@@ -45,8 +46,6 @@ export default function SaleChange() {
           dispatch(setItemStatus(data.itemStatus));
           dispatch(setPrice(data.price));
           dispatch(setDetail(data.detail));
-          if (data.map && data.map.placeName) {
-          }
           setLoading(false);
         } else {
           alert('상품 정보를 불러오지 못했습니다.');
@@ -57,7 +56,7 @@ export default function SaleChange() {
       }
     };
     fetchItem();
-  }, [itemId, dispatch]);
+  }, [id, dispatch]);
 
   const handlePriceChange = (e) => {
     let value = e.target.value.replace(/[^0-9]/g, '');
@@ -120,7 +119,7 @@ export default function SaleChange() {
     formData.append('placeName', storedMarkers[0].placeName);
 
     try {
-      const response = await axios.patch(`${API}/item/${itemId}`, formData, {
+      const response = await axios.patch(`${API}/item/${id}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
@@ -129,6 +128,8 @@ export default function SaleChange() {
         dispatch(resetForm());
         setSelectedFiles([]);
         setLocalErrors({});
+        // 수정 완료 후 상품 상세 페이지로 이동
+        navigate(`/purchase/product-detail/${id}`);
       } else {
         alert('수정 실패: ' + response.data.message);
       }
@@ -241,7 +242,7 @@ export default function SaleChange() {
   );
 }
 
-//----------------------------------- Styled Components -----------------------------------
+/* -------------------- Styled Components -------------------- */
 
 const H1 = styled.h1`
   font-size: 38px;

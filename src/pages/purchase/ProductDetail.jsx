@@ -6,8 +6,6 @@ import axios from 'axios';
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { chat, setActiveRoom } from '../../store/modules/chatReducer';
-// import { jwtDecode } from 'jwt-decode';
-// import { io } from 'socket.io-client';
 import MiniMap from '../../components/purchase/MiniMap';
 import { deleteItemDetail } from '../../utils/api';
 import ModalDelete from '../../components/purchase/ModalDelete';
@@ -21,30 +19,25 @@ const s3 = process.env.REACT_APP_S3;
 const API = process.env.REACT_APP_API_SERVER;
 
 export default function ProductDetail() {
-  // redux
-  // const isLoggedIn = useSelector((state) => state.isLogin.isLoggedIn);
-
   const { id } = useParams();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const [userId, setUserId] = useState(null);
   const [userNick, setUserNick] = useState(null);
-
-  const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false); //삭제 확인
-  const [isAlertOpen, setIsAlertOpen] = useState(false); //삭제 완료 알림
-  const [isDropdown, setDropdown] = useState(false); //판매자 전용 드롭다운 메뉴(편집, 삭제 권한)
-  const chatRooms = useSelector((state) => state.chat.chatRooms);
-
+  const [isModalOpen, setIsModalOpen] = useState(false); // 삭제 확인
+  const [isAlertOpen, setIsAlertOpen] = useState(false); // 삭제 완료 알림
+  const [isDropdown, setDropdown] = useState(false); // 판매자 전용 드롭다운 (편집, 삭제 권한)
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
-  const [isEditAlert, setIsEidtAlert] = useState(false);
+  const chatRooms = useSelector((state) => state.chat.chatRooms);
 
+  // 상품 상세 정보 조회
   useEffect(() => {
     const fetchProductDetail = async () => {
       try {
@@ -61,14 +54,13 @@ export default function ProductDetail() {
     fetchProductDetail();
   }, [id]);
 
-  // ---------- 로그인된 사용자 정보 가져오기 ----------
+  // 로그인된 사용자 정보 가져오기
   useEffect(() => {
     const token = localStorage.getItem('user');
     console.log(token);
     if (token) {
       try {
         const decodeToken = JSON.parse(token);
-
         setUserId(decodeToken.id);
         setUserNick(decodeToken.nickname);
         console.log(decodeToken);
@@ -78,7 +70,7 @@ export default function ProductDetail() {
     }
   }, []);
 
-  // ---------- 초기 좋아요 상태 ----------
+  // 초기 좋아요 상태 설정
   useEffect(() => {
     if (product) {
       setLiked(product.isFavorite);
@@ -86,7 +78,7 @@ export default function ProductDetail() {
     }
   }, [product]);
 
-  // 로딩 애니메이션
+  // 로딩 애니메이션 처리
   if (loading) {
     return (
       <S.MainLayout>
@@ -107,9 +99,8 @@ export default function ProductDetail() {
     );
   }
 
-  // chatRoom 데이터 전달, 채팅방 생성
+  // 채팅방 생성 및 이동 처리
   const handleChatData = async () => {
-    // 사용자 인증
     if (!userId) {
       navigate('/login');
       return;
@@ -138,7 +129,6 @@ export default function ProductDetail() {
     }
 
     try {
-      // 채팅방 생성
       const response = await axios.post(`${API}/chat/chatroom/create`, {
         itemId: product.id,
         chatHost: product.userId,
@@ -148,7 +138,6 @@ export default function ProductDetail() {
 
       const roomId = response.data.roomId;
 
-      // redux에 저장
       const chatPayload = {
         roomId,
         itemId: product.id,
@@ -159,23 +148,21 @@ export default function ProductDetail() {
 
       dispatch(chat(chatPayload));
       dispatch(setActiveRoom(roomId.toString()));
-
-      // 채팅방 이동
       navigate(`/chat/${roomId}`);
     } catch (err) {
       console.error(err);
     }
   };
 
-  // ---------- 판매자 프로필 / 닉네임 클릭 ----------
+  // 판매자 프로필 클릭 시 이동
   const handleSellerClick = () => {
     navigate(`/seller/${product.userId}`);
   };
 
-  // ---------- 상품 등록한 사용자인지 확인 ----------
+  // 현재 사용자가 상품 등록자인지 여부
   const isOwner = userId === product?.userId;
 
-  // 삭제 요청
+  // 상품 삭제 요청
   const handleDeleteProduct = async () => {
     try {
       await deleteItemDetail(id);
@@ -186,15 +173,13 @@ export default function ProductDetail() {
     }
   };
 
-  // ---------- 좋아요 버튼 ----------
+  // 좋아요 버튼 클릭 처리
   const handleLikeClick = async (e) => {
     e.preventDefault();
-
     if (loading) return;
 
     try {
       setLoading(true);
-
       const loginRes = await axios.post(
         `${API}/user/token`,
         {},
@@ -234,25 +219,22 @@ export default function ProductDetail() {
           구매 &gt; {product.Category.category} &gt; {product.title}
         </Breadcrumb>
 
-        {/* 판매자 본인만 볼수 있는 드롭다운 버튼 */}
+        {/* 판매자 본인일 경우 드롭다운 메뉴 표시 */}
         {isOwner && (
           <>
             <MoreButton onClick={() => setDropdown((prev) => !prev)}>
               <span className="material-symbols-outlined">more_vert</span>
             </MoreButton>
-
-            {/* 드롭다운 메뉴 : 편집 & 삭제 버튼 표시 */}
             {isDropdown && (
               <DropdownMenu>
-                <DropdownItem onClick={() => setIsEidtAlert(true)}>
+                <DropdownItem onClick={() => navigate(`/salechange/${id}`)}>
                   <button>
                     <span className="material-symbols-outlined">edit</span>
                   </button>
                   <div>편집</div>
                 </DropdownItem>
-
                 <DropdownItem onClick={() => setIsModalOpen(true)}>
-                  <button onClick={() => setIsModalOpen(true)}>
+                  <button>
                     <span className="material-symbols-outlined">delete</span>
                   </button>
                   <div>삭제</div>
@@ -263,27 +245,19 @@ export default function ProductDetail() {
         )}
       </BreadcrumbContainer>
 
-      {/* 모달창 (삭제) */}
+      {/* 삭제 모달 */}
       <ModalDelete
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onDelete={handleDeleteProduct}
       />
 
-      {/* 모달창 (삭제 완료 알림) */}
+      {/* 삭제 완료 알림 모달 */}
       <ModalAlert
         isOpen={isAlertOpen}
         content={'삭제가 완료되었습니다.'}
         onClose={() => setIsAlertOpen(false)}
         onNavigate={() => navigate('/purchase')}
-      />
-
-      {/* 모달창 (편집 버튼) */}
-      <ModalAlert
-        isOpen={isEditAlert}
-        content={'개발 중인 기능입니다. 곧 만나요!'}
-        onClose={() => setIsEidtAlert(false)}
-        onNavigate={() => setIsEidtAlert(false)}
       />
 
       <ProductInfoContainer>
@@ -312,15 +286,12 @@ export default function ProductDetail() {
           </SellerInfoWrapper>
         </ProductImgSection>
 
-        {/* ----------- 상품 상세 정보 섹션 -----------*/}
+        {/* 상품 상세 정보 */}
         <ProductInfoSection>
-          {/* 상품 상세 */}
           <ProductTitle>{product.title}</ProductTitle>
           <ProductPrice>{product.price.toLocaleString()} 원</ProductPrice>
           <ProductStatus>상품 상태 : {product.itemStatus}</ProductStatus>
           <ProductDescription>{product.detail}</ProductDescription>
-
-          {/* 버튼 영역 */}
           <ButtonWrapper>
             <ChatButton onClick={handleChatData}>채팅하기</ChatButton>
             <FavoriteButton onClick={handleLikeClick} disabled={loading}>
@@ -332,9 +303,6 @@ export default function ProductDetail() {
               {likeCount}
             </FavoriteButton>
           </ButtonWrapper>
-
-          {/* 거래 상태 표시 (판매자 본인만 클릭 가능) -> 채팅에서 처리하는 것으로 변경 */}
-
           <TradeStatus>
             {!product.buyerId ? (
               <span>📢&nbsp;&nbsp;판매중</span>
@@ -343,7 +311,7 @@ export default function ProductDetail() {
             )}
           </TradeStatus>
 
-          {/* 767이하 모바일에서는 판매자 정보가 상품 상세 정보 아래로 이동 */}
+          {/* 모바일용 판매자 정보 */}
           <SellerInfoWrapperMobile>
             <h2>판매자 정보</h2>
             <div>
@@ -366,9 +334,8 @@ export default function ProductDetail() {
         </ProductInfoSection>
       </ProductInfoContainer>
 
-      {/* ----------- 거래 희망 장소 -----------*/}
+      {/* 거래 희망 장소 섹션 */}
       <ProductDetailContainer>
-        {/* 거래 희망 장소 텍스트 */}
         <TradePlaceSection>
           <div>
             <h2> 거래 희망 장소 </h2>
@@ -377,7 +344,6 @@ export default function ProductDetail() {
             {product.map.address} {product.map.placeName}
           </div>
         </TradePlaceSection>
-        {/* 지도 */}
         <MiniMap id={id} />
       </ProductDetailContainer>
 
@@ -393,7 +359,8 @@ export default function ProductDetail() {
   );
 }
 
-/* -------------- 현재 페이지 위치 --------------*/
+/* -------------------- Styled Components -------------------- */
+
 const BreadcrumbContainer = styled.div`
   display: flex;
   flex-direction: row;
@@ -405,6 +372,7 @@ const BreadcrumbContainer = styled.div`
 const MoreButton = styled.button`
   color: black;
 `;
+
 const Breadcrumb = styled.button`
   font-size: 14px;
   color: gray;
@@ -429,7 +397,6 @@ const DropdownItem = styled.div`
   color: gray;
   align-items: center;
   font-size: 14px;
-
   border-radius: 5px;
   padding: 4px;
   height: 24px;
@@ -441,8 +408,6 @@ const DropdownItem = styled.div`
     font-size: 12px;
   }
 `;
-
-/* -------------- 섹션 포함하는 컨테이너 --------------*/
 
 const ProductInfoContainer = styled.div`
   display: grid;
@@ -466,7 +431,6 @@ const ProductDetailContainer = styled.div`
   }
 `;
 
-/* -------------- 상품 이미지 및 판매자 정보 섹션 --------------*/
 const ProductImgSection = styled.div`
   flex: 1;
 `;
@@ -525,9 +489,8 @@ const SellerProfile = styled.div`
   img {
     width: 100%;
     height: 100%;
-
-    object-fit: cover; //div크기에 맞추고, 넘치는 부분은 잘라줌
-    object-position: center; //이미지의 중심을 div 중앙에 배치
+    object-fit: cover;
+    object-position: center;
   }
 `;
 
@@ -547,7 +510,6 @@ const SellerLocation = styled.div`
   color: gray;
 `;
 
-/* -------------- 상품 상세 정보 섹션 --------------*/
 const ProductInfoSection = styled.div`
   flex: 1;
   display: flex;
@@ -588,7 +550,6 @@ const ProductDescription = styled.div`
   }
 `;
 
-/* 버튼 */
 const ButtonWrapper = styled.div`
   display: flex;
   gap: 10px;
@@ -624,7 +585,6 @@ const FavoriteButton = styled(ButtonBase)`
   }
 `;
 
-/* 거래 상태 */
 const TradeStatus = styled.div`
   display: flex;
   margin-top: 20px;
@@ -642,16 +602,6 @@ const TradeStatus = styled.div`
   }
 `;
 
-// const TradeButton = styled(ButtonBase)`
-//   border: 1px solid var(--color-lightgray);
-//   flex-grow: 1;
-
-//   &:hover {
-//     background: #f8f8f8;
-//   }
-// `;
-
-/* -------------- 거래 희망 장소 --------------*/
 const TradePlaceSection = styled.div`
   display: flex;
   justify-content: space-between;

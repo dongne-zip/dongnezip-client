@@ -19,6 +19,7 @@ import SoldItems from './pages/mypage/SoldItems';
 import LikeItems from './pages/mypage/Favorites';
 import ChatList from './pages/chatList';
 import BoughtItems from './pages/mypage/BoughtItems';
+import SaleChange from './pages/sales/SaleChange';
 // import Map from './components/sales/Map';
 
 function App() {
@@ -41,7 +42,7 @@ function App() {
           {/* 판매페이지 관련 */}
           <Route path="/sales" element={<SaleRegister />} />
           <Route path="/seller/:sellerId" element={<SellerSales />} />
-          {/* <Route path="/sales/SaleChange" element={<SaleChange />}></Route> */}
+          <Route path="/SaleChange/:id" element={<SaleChange />}></Route>
           <Route path="/chat" element={<Chat />}></Route>
 
           {/* 마이페이지 관련 */}

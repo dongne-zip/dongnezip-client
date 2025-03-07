@@ -4,6 +4,7 @@ import ProductCard from '../../components/purchase/ProductCard';
 import * as S from '../../styles/mixins';
 import { useEffect, useState } from 'react';
 import { fetchProducts } from '../../utils/api';
+import LoadingProductList from '../../components/purchase/LoadingProductList';
 
 export default function Index() {
   // ----------- 필터링 상태 -----------
@@ -59,6 +60,20 @@ export default function Index() {
     return 0;
   });
 
+  // 전체 상품 랜더링
+  const renderProductList = () => {
+    if (loading) return <LoadingProductList />;
+    if (error) return <p>{error}</p>;
+    if (sortedProducts.length > 0) {
+      return sortedProducts.map((product) => (
+        <div key={product.id}>
+          <ProductCard product={product} />
+        </div>
+      ));
+    }
+    return <p>조회된 상품이 없습니다.</p>;
+  };
+
   return (
     <PurchaseLayout>
       {/* ----------- 필터 영역 -----------*/}
@@ -75,21 +90,7 @@ export default function Index() {
 
       {/* ----------- 상품 목록 -----------*/}
 
-      <ProductListContainer>
-        {loading ? (
-          <p>Loading...</p>
-        ) : error ? (
-          <p>{error}</p>
-        ) : sortedProducts.length > 0 ? (
-          sortedProducts.map((product) => (
-            <div key={product.id}>
-              <ProductCard product={product} />
-            </div>
-          ))
-        ) : (
-          <p>상품이 없습니다</p>
-        )}
-      </ProductListContainer>
+      <ProductListContainer>{renderProductList()}</ProductListContainer>
     </PurchaseLayout>
   );
 }

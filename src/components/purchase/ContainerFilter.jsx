@@ -3,16 +3,7 @@ import { styled } from 'styled-components';
 import { SEOUL_DISTRICTS, CATEGORY_LIST } from '../../data/constant';
 import { useState } from 'react';
 
-export default function ContainerFilter({
-  available,
-  location,
-  category,
-  sortOption,
-  setAvailable,
-  setLocation,
-  setCategory,
-  setSortOption,
-}) {
+export default function ContainerFilter({ filterState, updateFilter }) {
   const [expanded, setExpanded] = useState(false); //더보기 상태
 
   return (
@@ -22,8 +13,8 @@ export default function ContainerFilter({
         <label>
           <input
             type="checkbox"
-            checked={available}
-            onChange={() => setAvailable((prev) => !prev)}
+            checked={filterState.available}
+            onChange={() => updateFilter('available', !filterState.available)}
           />{' '}
           거래 가능
         </label>
@@ -39,8 +30,10 @@ export default function ContainerFilter({
                 type="radio"
                 name="location"
                 value={id}
-                checked={location === Number(id)}
-                onChange={(e) => setLocation(Number(e.target.value))}
+                checked={filterState.location === Number(id)}
+                onChange={(e) =>
+                  updateFilter('location', Number(e.target.value))
+                }
               />{' '}
               {name}
             </label>
@@ -60,8 +53,8 @@ export default function ContainerFilter({
               type="radio"
               name="category"
               value={id}
-              checked={category === id}
-              onChange={(e) => setCategory(Number(e.target.value))}
+              checked={filterState.category === id}
+              onChange={(e) => updateFilter('category', Number(e.target.value))}
             />{' '}
             {name}
           </label>
@@ -75,8 +68,8 @@ export default function ContainerFilter({
             type="radio"
             name="sort"
             value="latest"
-            checked={sortOption === 'latest'}
-            onChange={() => setSortOption('latest')}
+            checked={filterState.sortOption === 'latest'}
+            onChange={() => updateFilter('sortOption', 'latest')}
           />{' '}
           최신순
         </label>
@@ -85,8 +78,8 @@ export default function ContainerFilter({
             type="radio"
             name="sort"
             value="popular"
-            checked={sortOption === 'popular'}
-            onChange={() => setSortOption('popular')}
+            checked={filterState.sortOption === 'popular'}
+            onChange={() => updateFilter('sortOption', 'popular')}
           />{' '}
           인기순
         </label>

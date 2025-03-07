@@ -4,7 +4,10 @@ import { useState } from 'react';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHeart as regularHeart } from '@fortawesome/free-regular-svg-icons'; // 빈 하트
-import { faHeart as solidHeart } from '@fortawesome/free-solid-svg-icons'; // 채워진 하트
+import {
+  faLocationDot,
+  faHeart as solidHeart,
+} from '@fortawesome/free-solid-svg-icons'; // 채워진 하트
 import ModalLogin from './ModalLogin';
 import { useNavigate } from 'react-router-dom';
 
@@ -101,13 +104,23 @@ export default function ProductCard({ product }) {
             >
               <FontAwesomeIcon
                 icon={liked ? solidHeart : regularHeart}
-                style={{ color: liked ? 'red' : 'black' }}
+                style={{ color: liked ? 'red' : 'var(--color-lightgray)' }}
               />
             </LikeButton>
-            {loading ? null : <LikeCount liked={liked}>{likeCount}</LikeCount>}
           </ItemTitle>
           <ItemPrice>{product.price.toLocaleString()}원</ItemPrice>
-          <ItemPurchasePlace>{regionName}</ItemPurchasePlace>
+          <ItemFooter>
+            <FooterItem>
+              <FontAwesomeIcon icon={solidHeart} />
+              {loading ? null : (
+                <LikeCount liked={liked}>{likeCount}</LikeCount>
+              )}
+            </FooterItem>
+            <FooterItem>
+              <FontAwesomeIcon icon={faLocationDot} />
+              {regionName}
+            </FooterItem>
+          </ItemFooter>
         </ItemInfoWrapper>
       </ItemContainer>
 
@@ -129,13 +142,21 @@ const ItemContainer = styled.div`
   display: flex;
   flex-direction: column;
   width: 220px;
-  height: 300px;
+  height: 400px;
   padding: 10px;
-  margin-bottom: 40px;
+  margin-bottom: 10px;
+  cursor: pointer;
 
   img {
     border-radius: 10px;
     object-fit: cover;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.3s ease;
+
+    &:hover {
+      transform: scale(1.1);
+    }
   }
 `;
 
@@ -143,12 +164,11 @@ const ItemImgWrapper = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 200px;
-  height: 200px;
-
-  img {
-    border: 1px solid #f3f4f7;
-  }
+  width: 220px;
+  height: 220px;
+  overflow: hidden;
+  border: 1px solid #f3f4f7;
+  border-radius: 10px;
 `;
 
 const ItemInfoWrapper = styled.div`
@@ -162,6 +182,13 @@ const ItemTitle = styled.div`
   flex-direction: row;
   justify-content: space-between;
   margin-bottom: 5px;
+
+  div {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+  }
 `;
 
 const ItemPrice = styled.div`
@@ -170,9 +197,26 @@ const ItemPrice = styled.div`
   margin-bottom: 10px;
 `;
 
-const ItemPurchasePlace = styled.div`
+const ItemFooter = styled.div`
+  display: flex;
+  /* justify-content: space-between; */
+  align-items: center;
+  margin-top: 8px;
+  color: var(--color-lightgray);
+  font-size: 0.8rem;
+  gap: 20px;
+`;
+
+const FooterItem = styled.div`
+  display: flex;
+  align-items: center;
   color: var(--color-lightgray);
   font-size: 0.9rem;
+  gap: 4px;
+
+  svg {
+    font-size: 0.9rem;
+  }
 `;
 
 // 좋아요
@@ -184,15 +228,10 @@ const LikeButton = styled(S.IconMedium)`
 
   svg {
     font-size: 24px;
-    transition: transform 0.2s ease-in-out;
-  }
-
-  &:hover svg {
-    transform: scale(1.1);
   }
 `;
 
 const LikeCount = styled.div`
-  font-size: 18px;
-  color: ${({ liked }) => (liked ? 'red' : 'black')};
+  font-size: 0.9rem;
+  color: var(--color-lightgray);
 `;

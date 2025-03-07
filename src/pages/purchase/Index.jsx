@@ -1,12 +1,9 @@
 import { styled } from 'styled-components';
-// import { Link } from 'react-router-dom';
 import ContainerFilter from '../../components/purchase/ContainerFilter';
 import ProductCard from '../../components/purchase/ProductCard';
 import * as S from '../../styles/mixins';
 import { useEffect, useState } from 'react';
-import axios from 'axios';
-
-const API = process.env.REACT_APP_API_SERVER;
+import { fetchProducts } from '../../utils/api';
 
 export default function Index() {
   // ----------- 필터링 상태 -----------
@@ -18,27 +15,19 @@ export default function Index() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchProducts = async () => {
+  const getProducts = async () => {
     setLoading(true);
     setError(null);
 
     // 전체 상품 조회
     try {
-      const res = await axios.get(`${API}/item/item`, {
-        params: {
-          categoryId: category !== 0 ? category : undefined,
-          regionId: location !== 0 ? location : undefined,
-          status: available ? 'available' : undefined,
-          sortBy: sortOption,
-        },
+      const data = await fetchProducts({
+        categoryId: category !== 0 ? category : undefined,
+        regionId: location !== 0 ? location : undefined,
+        status: available ? 'available' : undefined,
+        sortBy: sortOption,
       });
-
-      if (res.data.success) {
-        console.log('API 응답 데이터:', res.data.data);
-        setProducts(res.data.data);
-      } else {
-        throw new Error('데이터를 가져오는 데 실패했습니다.');
-      }
+      setProducts(data);
     } catch (err) {
       console.error('상품 목록 불러오는 중 오류 발생:', err);
       setError('상품을 불러오는 중 오류가 발생했습니다.');
@@ -48,7 +37,7 @@ export default function Index() {
   };
 
   useEffect(() => {
-    fetchProducts();
+    getProducts();
   }, [category, location, available, sortOption]);
 
   // 필터링된 상품 목록
